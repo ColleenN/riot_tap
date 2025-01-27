@@ -23,7 +23,14 @@ class TapRiotAPI(Tap):
             secret=True,  # Flag config as protected.
             title="Auth Token",
             description="The token to authenticate against the API service",
-        )
+        ),
+        th.Property(
+            "followed_players",
+            th.ArrayType(th.StringType),
+            required=False,
+            title="Followed Players",
+            description="Players for whom we would like to sync match data",
+        ),
     ).to_dict()
 
     def discover_streams(self) -> list[streams.RiotAPIStream]:
@@ -34,6 +41,9 @@ class TapRiotAPI(Tap):
         """
         return [
             streams.RankedLadderStream(tap=self),
+            streams.TFTPlayerByNameStream(tap=self),
+            streams.TFTPlayerMatchHistoryStream(tap=self),
+            streams.TFTPlayerMatchDetailStream(tap=self),
         ]
 
 
