@@ -1,0 +1,3 @@
+singer-sdk
+meltano
+pytest

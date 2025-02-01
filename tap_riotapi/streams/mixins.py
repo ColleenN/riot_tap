@@ -1,8 +1,22 @@
 import requests
-from typing import Iterable
+from typing import Any, Iterable
 
 from singer_sdk import typing as th  # JSON Schema typing helpers
 from singer_sdk.helpers import types
+
+
+class TFTRankedLadderMixin:
+
+    def get_url_params(
+        self, *args, **kwargs
+    ) -> dict[str, Any]:
+        params = super().get_url_params(*args, **kwargs)
+        params.update({"queue": "RANKED_TFT"})
+        return params
+
+    @property
+    def url_base(self) -> str:
+        return f"https://na1.api.riotgames.com"
 
 
 class TFTMatchDetailMixin:

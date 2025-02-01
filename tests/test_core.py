@@ -6,8 +6,8 @@ from singer_sdk.testing import get_tap_test_class
 from tap_riotapi.tap import TapRiotAPI
 
 SAMPLE_CONFIG = {
-    "auth_token": "RGAPI-5297fb20-35a1-4212-b631-16cca440e317"
-    # TODO: Initialize minimal tap config
+    "auth_token": "RGAPI-4c29620e-ddbe-4f84-9eb9-06413947a961",
+    "followed_players": ["SupremeKitteh#NA1"],
 }
 
 

@@ -5,7 +5,6 @@ from __future__ import annotations
 from singer_sdk import Tap
 from singer_sdk import typing as th  # JSON schema typing helpers
 
-# TODO: Import your custom stream types here:
 from tap_riotapi import streams
 
 
@@ -31,6 +30,11 @@ class TapRiotAPI(Tap):
             title="Followed Players",
             description="Players for whom we would like to sync match data",
         ),
+        th.Property(
+            "following",
+            th.PropertiesList()
+        )
+
     ).to_dict()
 
     def discover_streams(self) -> list[streams.RiotAPIStream]:
@@ -40,10 +44,9 @@ class TapRiotAPI(Tap):
             A list of discovered streams.
         """
         return [
-            streams.RankedLadderStream(tap=self),
             streams.TFTPlayerByNameStream(tap=self),
             streams.TFTPlayerMatchHistoryStream(tap=self),
-            streams.TFTPlayerMatchDetailStream(tap=self),
+            streams.TFTPlayerMatchDetailStream(tap=self)
         ]
 
 
