@@ -1,32 +1,42 @@
 from __future__ import annotations
 
-from tap_riotapi.client import RiotAPIStream
+from singer_sdk import typing as th  # JSON Schema typing helpers
 
-ROMAN_NUMERALS = {"1": "I", "2": "II", "3": "III", "4": "IV"}
-NON_APEX_TIERS = {"diamond", "emerald", "platinum", "gold", "silver", "bronze", "iron"}
+from tap_riotapi.client import RiotAPIStream
+from tap_riotapi.streams.mixins import TFTRankedLadderMixin
+from tap_riotapi.utils import ROMAN_NUMERALS, NON_APEX_TIERS, flatten_config
 
 
 class NormalTierRankedLadderStream(TFTRankedLadderMixin, RiotAPIStream):
     name = "normal_ranked_ladder"
     path = "/tft/league/v1/entries/{tier}/{division}"
+    schema = th.PropertiesList(
+        th.Property(
+            "puuid",
+            th.StringType,
+            required=True,
+        ),
+        th.Property(
+            "summonerId",
+            th.StringType,
+            required=True,
+            title="Summoner ID",
+            description="Unique identifier for league player account"
+        ),
+    ).to_dict()
 
     @property
     def partitions(self) -> list[dict] | None:
         league_list = []
-        for item in self.config.get("followed_leagues", []):
-            division = None
-            if item[-1].isdigit():
-                tier = item[:-1]
-                division = item[-1]
-            else:
-                tier = item
-            tier = tier.lower()
-            if tier in NON_APEX_TIERS:
-                if division:
-                    league_list.append(
-                        {"division": ROMAN_NUMERALS[division], "tier": tier.upper()})
+        for item in flatten_config(self.config["followed_leagues"]):
+            if item["name"] in NON_APEX_TIERS:
+                new_item = {
+                    "tier": item["name"].upper(),
+                    "region": item["region"]
+                }
+                if "division" in item:
+                    league_list.append(new_item)
                 else:
                     for n in range(1, 5):
-                        league_list.append(
-                            {"division": ROMAN_NUMERALS[n], "tier": tier.upper()})
+                        league_list.append(new_item | {"division": n})
         return league_list

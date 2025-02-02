@@ -2,11 +2,13 @@
 
 from __future__ import annotations
 
+from setuptools.namespaces import flatten
 from singer_sdk import typing as th  # JSON Schema typing helpers
 from singer_sdk.helpers import types
 
 from tap_riotapi.client import RiotAPIStream
 from tap_riotapi.streams.mixins import TFTMatchDetailMixin, TFTMatchListMixin
+from tap_riotapi.utils import flatten_config
 
 
 class TFTPlayerByNameStream(RiotAPIStream):
@@ -32,9 +34,10 @@ class TFTPlayerByNameStream(RiotAPIStream):
     def partitions(self) -> list[dict] | None:
 
         player_list = []
-        for player in self.config.get("followed_players", []):
-            name, tagline = player.split("#")
-            player_list += [{"gameName": name, "tagLine": tagline}]
+        for player in flatten_config(self.config["followed_players"]):
+            name, tagline = player["name"].split("#")
+            player_list.append(
+                {"gameName": name, "tagLine": tagline, "region": player["region"]})
         return player_list
 
 

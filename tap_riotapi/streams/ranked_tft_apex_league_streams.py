@@ -4,10 +4,8 @@ from singer_sdk import typing as th  # JSON Schema typing helpers
 from singer_sdk.helpers import types
 
 from tap_riotapi.client import RiotAPIStream
+from tap_riotapi.utils import APEX_TIERS
 from tap_riotapi.streams.mixins import TFTMatchListMixin, TFTMatchDetailMixin, TFTRankedLadderMixin
-
-
-APEX_TIERS = {"challenger", "grandmaster", "master"}
 
 
 class ApexTierRankedLadderStream(TFTRankedLadderMixin, RiotAPIStream):
