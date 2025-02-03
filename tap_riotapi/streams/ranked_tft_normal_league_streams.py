@@ -3,7 +3,7 @@ from __future__ import annotations
 from singer_sdk import typing as th  # JSON Schema typing helpers
 
 from tap_riotapi.client import RiotAPIStream
-from tap_riotapi.streams.mixins import TFTRankedLadderMixin
+from tap_riotapi.streams.mixins import TFTMatchListMixin, TFTMatchDetailMixin, TFTRankedLadderMixin
 from tap_riotapi.utils import ROMAN_NUMERALS, NON_APEX_TIERS, flatten_config
 
 
@@ -15,14 +15,7 @@ class NormalTierRankedLadderStream(TFTRankedLadderMixin, RiotAPIStream):
             "puuid",
             th.StringType,
             required=True,
-        ),
-        th.Property(
-            "summonerId",
-            th.StringType,
-            required=True,
-            title="Summoner ID",
-            description="Unique identifier for league player account"
-        ),
+        )
     ).to_dict()
 
     @property
@@ -38,5 +31,17 @@ class NormalTierRankedLadderStream(TFTRankedLadderMixin, RiotAPIStream):
                     league_list.append(new_item)
                 else:
                     for n in range(1, 5):
-                        league_list.append(new_item | {"division": n})
+                        league_list.append(new_item | {"division": ROMAN_NUMERALS[n]})
         return league_list
+
+
+class NormalTierRankedLadderMatchHistoryStream(TFTMatchListMixin, RiotAPIStream):
+
+    name = "ranked_ladder_match_history"
+    parent_stream_type = NormalTierRankedLadderStream
+
+
+class NormalTierRankedLadderMatchDetailStream(TFTMatchDetailMixin, RiotAPIStream):
+
+    name = "ranked_ladder_match_detail"
+    parent_stream_type = NormalTierRankedLadderMatchHistoryStream
