@@ -37,19 +37,36 @@ class ApexTierRankedLadderStream(TFTRankedLadderMixin, RiotAPIStream):
         return "$.entries[*]"
 
 
-class RankedLadderSummonerIDStream(RiotAPIStream):
+class ApexTierRankedLadderSummonerIDStream(RiotAPIStream):
 
     name = "ranked_ladder_summoner_id"
     path = "/tft/summoner/v1/summoners/{summonerId}"
+    parent_stream_type = ApexTierRankedLadderStream
+    schema = th.PropertiesList(
+        th.Property(
+            "puuid",
+            th.StringType,
+            required=True,
+            title="Player UUID",
+            description="Globally unique identifier for Riot Account."
+        )
+    )
+
+    def get_child_context(
+        self,
+        record: types.Record,
+        context: types.Context | None,
+    ) -> types.Context | None:
+        return record
 
 
-class RankedLadderMatchHistoryStream(TFTMatchListMixin, RiotAPIStream):
+class ApexTierRankedLadderMatchHistoryStream(TFTMatchListMixin, RiotAPIStream):
 
     name = "ranked_ladder_match_history"
-    #parent_stream_type = RankedLadderSummonerIDStream
+    parent_stream_type = ApexTierRankedLadderSummonerIDStream
 
 
-class RankedLadderMatchDetailStream(TFTMatchDetailMixin, RiotAPIStream):
+class ApexTierRankedLadderMatchDetailStream(TFTMatchDetailMixin, RiotAPIStream):
 
     name = "ranked_ladder_match_detail"
-    #parent_stream_type = RankedLadderMatchHistoryStream
+    parent_stream_type = ApexTierRankedLadderMatchHistoryStream

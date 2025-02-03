@@ -45,36 +45,24 @@ class TapRiotAPI(Tap):
         Returns:
             A list of discovered streams.
         """
-        stream_list = []
+        stream_types = []
 
         if "followed_players" in self.config:
-            stream_list.extend(
-                [
-                    streams.TFTPlayerByNameStream(tap=self),
-                    streams.TFTPlayerMatchHistoryStream(tap=self),
-                    streams.TFTPlayerMatchDetailStream(tap=self)
-                ]
-            )
+            stream_types.extend(streams.TFT_PLAYER_STREAMS)
+
         if "followed_leagues" in self.config:
             config_items = flatten_config(self.config["followed_leagues"])
             leagues = set([x["name"] for x in config_items])
             if leagues & set(APEX_TIERS):
-                stream_list.extend(
-                    [
-                        streams.ApexTierRankedLadderStream(tap=self)
-                    ]
-                )
-            if leagues & set(NON_APEX_TIERS):
-                stream_list.extend(
-                    [
-                        streams.NormalTierRankedLadderStream(tap=self)
-                    ]
-                )
+                stream_types.extend(streams.APEX_TIER_STREAMS)
 
-        if not stream_list:
+            if leagues & set(NON_APEX_TIERS):
+                stream_types.extend(streams.NORMAL_TIER_STREAMS)
+
+        if not stream_types:
             raise ConfigValidationError("No streams configured!")
 
-        return stream_list
+        return [stream(tap=self) for stream in stream_types]
 
 
 if __name__ == "__main__":
