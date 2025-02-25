@@ -4,7 +4,7 @@ from singer_sdk import typing as th  # JSON Schema typing helpers
 from singer_sdk.helpers import types
 
 from tap_riotapi.client import RiotAPIStream
-from tap_riotapi.utils import APEX_TIERS
+from tap_riotapi.utils import APEX_TIERS, REGION_ROUTING_MAP
 from tap_riotapi.streams.mixins import (
     TFTMatchListMixin,
     TFTMatchDetailMixin,
@@ -27,7 +27,21 @@ class ApexTierRankedLadderStream(TFTRankedLadderMixin, RiotAPIStream):
 
     @property
     def partitions(self) -> list[dict] | None:
-        return [x for x in self.config.get("followed_leagues", []) if x in APEX_TIERS]
+        partitions = []
+        for server, leauge_list in self.config.get("followed_leagues", []).items():
+            platform = server.lower()
+            if platform not in REGION_ROUTING_MAP.keys():
+                continue
+            region = REGION_ROUTING_MAP[platform]
+            for league in leauge_list:
+                if league.get("name").lower() in APEX_TIERS:
+                    partitions.append({
+                        "tier": league.get("name"),
+                        "platform_routing_value": platform,
+                        "region_routing_value": region
+                    })
+
+        return partitions
 
     def get_child_context(
         self,
