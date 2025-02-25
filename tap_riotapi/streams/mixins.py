@@ -7,14 +7,12 @@ from singer_sdk.helpers import types
 
 class TFTRankedLadderMixin:
 
+    routing_type = "platform"
+
     def get_url_params(self, *args, **kwargs) -> dict[str, Any]:
         params = super().get_url_params(*args, **kwargs)
         params.update({"queue": "RANKED_TFT"})
         return params
-
-    @property
-    def url_base(self) -> str:
-        return "https://{platform_routing_value}.api.riotgames.com"
 
 
 class TFTMatchDetailMixin:
@@ -55,9 +53,6 @@ class TFTMatchDetailMixin:
         ),
     ).to_dict()
 
-    @property
-    def url_base(self) -> str:
-        return "https://{region_routing_value}.api.riotgames.com"
 
 
 class TFTMatchListMixin:
@@ -76,10 +71,6 @@ class TFTMatchListMixin:
     def parse_response(self, response: requests.Response) -> Iterable[dict]:
         for item in super().parse_response(response):
             yield {"matchId": item}
-
-    @property
-    def url_base(self) -> str:
-        return "https://{region_routing_value}.api.riotgames.com"
 
     def get_child_context(
         self,

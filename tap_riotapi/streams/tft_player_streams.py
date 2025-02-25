@@ -35,14 +35,18 @@ class TFTPlayerByNameStream(RiotAPIStream):
         player_list = []
         for player in flatten_config(self.config["followed_players"]):
             name, tagline = player["name"].split("#")
-            if player["region"].lower() not in REGION_ROUTING_MAP.keys():
+
+            platform = player["region"].lower()
+            if platform not in REGION_ROUTING_MAP.keys():
                 continue
+            region = REGION_ROUTING_MAP[platform]
+
             player_list.append(
                 {
                     "gameName": name,
                     "tagLine": tagline,
-                    "platform_routing_value": player["region"],
-                    "region_routing_value": REGION_ROUTING_MAP[player["region"]],
+                    "platform_routing_value": platform,
+                    "region_routing_value": region,
                 }
             )
         return player_list

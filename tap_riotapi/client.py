@@ -23,6 +23,8 @@ SCHEMAS_DIR = resources.files(__package__) / "schemas"
 class RiotAPIStream(RESTStream):
     """RiotAPI stream class."""
 
+    routing_type = "regional"
+
     # Update this value if necessary or override `parse_response`.
     records_jsonpath = "$[*]"
 
@@ -32,8 +34,11 @@ class RiotAPIStream(RESTStream):
     @property
     def url_base(self) -> str:
         """Return the API URL root, configurable via tap settings."""
-        # TODO: hardcode a value here, or retrieve it from self.config
-        return "https://api.mysample.com"
+        if self.routing_type == "regional":
+            return "https://{region_routing_value}.api.riotgames.com"
+        else:
+            return "https://{platform_routing_value}.api.riotgames.com"
+
 
     @property
     def authenticator(self) -> APIKeyAuthenticator:
