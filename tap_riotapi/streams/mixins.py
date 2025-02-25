@@ -54,7 +54,6 @@ class TFTMatchDetailMixin:
     ).to_dict()
 
 
-
 class TFTMatchListMixin:
 
     path = "/tft/match/v1/matches/by-puuid/{puuid}/ids"

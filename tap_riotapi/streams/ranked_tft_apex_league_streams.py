@@ -28,19 +28,20 @@ class ApexTierRankedLadderStream(TFTRankedLadderMixin, RiotAPIStream):
     @property
     def partitions(self) -> list[dict] | None:
         partitions = []
-        for server, leauge_list in self.config.get("followed_leagues", []).items():
+        for server, league_list in self.config.get("followed_leagues", []).items():
             platform = server.lower()
             if platform not in REGION_ROUTING_MAP.keys():
                 continue
             region = REGION_ROUTING_MAP[platform]
-            for league in leauge_list:
+            for league in league_list:
                 if league.get("name").lower() in APEX_TIERS:
-                    partitions.append({
-                        "tier": league.get("name"),
-                        "platform_routing_value": platform,
-                        "region_routing_value": region
-                    })
-
+                    partitions.append(
+                        {
+                            "tier": league.get("name"),
+                            "platform_routing_value": platform,
+                            "region_routing_value": region,
+                        }
+                    )
         return partitions
 
     def get_child_context(
@@ -48,7 +49,7 @@ class ApexTierRankedLadderStream(TFTRankedLadderMixin, RiotAPIStream):
         record: types.Record,
         context: types.Context | None,
     ) -> types.Context | None:
-        return {"summonerId": record["summonerId"]}
+        return {"summonerId": record["summonerId"]} | context
 
     @property
     def records_jsonpath(self):
@@ -59,6 +60,7 @@ class ApexTierRankedLadderSummonerIDStream(RiotAPIStream):
 
     name = "ranked_ladder_summoner_id"
     path = "/tft/summoner/v1/summoners/{summonerId}"
+    routing_type = "platform"
     parent_stream_type = ApexTierRankedLadderStream
     schema = th.PropertiesList(
         th.Property(
@@ -68,14 +70,14 @@ class ApexTierRankedLadderSummonerIDStream(RiotAPIStream):
             title="Player UUID",
             description="Globally unique identifier for Riot Account.",
         )
-    )
+    ).to_dict()
 
     def get_child_context(
         self,
         record: types.Record,
         context: types.Context | None,
     ) -> types.Context | None:
-        return record
+        return record | context
 
 
 class ApexTierRankedLadderMatchHistoryStream(TFTMatchListMixin, RiotAPIStream):
