@@ -16,7 +16,6 @@ class TapRiotAPI(Tap):
 
     name = "tap-riotapi"
 
-    # TODO: Update this section with the actual config values you expect:
     config_jsonschema = th.PropertiesList(
         th.Property(
             "auth_token",
@@ -28,12 +27,12 @@ class TapRiotAPI(Tap):
         ),
         th.Property(
             "followed_players",
-            th.PropertiesList(),
+            th.ObjectType(),
             required=False,
             title="Followed Players",
             description="Players for whom we would like to sync match data",
         ),
-        th.Property("following", th.PropertiesList()),
+        th.Property("followed_leagues", th.ObjectType()),
     ).to_dict()
 
     def discover_streams(self) -> list[RiotAPIStream]:

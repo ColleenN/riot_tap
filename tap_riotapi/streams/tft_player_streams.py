@@ -2,7 +2,6 @@
 
 from __future__ import annotations
 
-from setuptools.namespaces import flatten
 from singer_sdk import typing as th  # JSON Schema typing helpers
 from singer_sdk.helpers import types
 
@@ -56,7 +55,7 @@ class TFTPlayerByNameStream(RiotAPIStream):
         record: types.Record,
         context: types.Context | None,
     ) -> types.Context | None:
-        return record
+        return record | context
 
 
 class TFTPlayerMatchHistoryStream(TFTMatchListMixin, RiotAPIStream):

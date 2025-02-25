@@ -2,22 +2,18 @@
 
 from __future__ import annotations
 
-import decimal
+from datetime import datetime
 import typing as t
-from importlib import resources
 
 from singer_sdk.authenticators import APIKeyAuthenticator
-from singer_sdk.helpers.jsonpath import extract_jsonpath
 from singer_sdk.pagination import BaseAPIPaginator  # noqa: TC002
 from singer_sdk.streams import RESTStream
+
+from tap_riotapi.utils import _RateLimitRecord
 
 if t.TYPE_CHECKING:
     import requests
     from singer_sdk.helpers.types import Context
-
-
-# TODO: Delete this is if not using json files for schema definition
-SCHEMAS_DIR = resources.files(__package__) / "schemas"
 
 
 class RiotAPIStream(RESTStream):
@@ -38,7 +34,6 @@ class RiotAPIStream(RESTStream):
             return "https://{region_routing_value}.api.riotgames.com"
         else:
             return "https://{platform_routing_value}.api.riotgames.com"
-
 
     @property
     def authenticator(self) -> APIKeyAuthenticator:
@@ -110,6 +105,12 @@ class RiotAPIStream(RESTStream):
         # TODO: Delete this method if no payload is required. (Most REST APIs.)
         return None
 
+    def routing_value(self, context: Context):
+        if self.routing_type == "regional":
+            return context["region_routing_value"]
+        else:
+            return context["platform_routing_value"]
+
     def parse_response(self, response: requests.Response) -> t.Iterable[dict]:
         """Parse the response and return an iterator of result records.
 
@@ -119,10 +120,31 @@ class RiotAPIStream(RESTStream):
         Yields:
             Each record from the source.
         """
+        timestamp = datetime.strptime(
+            response.headers["Date"], "%a, %d %b %Y %H:%M:%S %Z"
+        )
 
-        # Record rate limits here...
+        app_rate_limit = _RateLimitRecord(
+            datetime_returned=timestamp,
+            rate_cap=response.headers["X-App-Rate-Limit"],
+            rate_count=response.headers["X-App-Rate-Limit-Count"],
+        )
+        method_rate_limit = _RateLimitRecord(
+            datetime_returned=timestamp,
+            rate_cap=response.headers["X-Method-Rate-Limit"],
+            rate_count=response.headers["X-Method-Rate-Limit-Count"],
+        )
 
-        yield from super().parse_response(response)
+        data_iter = iter(super().parse_response(response))
+        first_record = next(data_iter)
+        yield {
+            "data": first_record,
+            "method_rate_limit": method_rate_limit,
+            "app_rate_limit": app_rate_limit,
+        }
+
+        for record in data_iter:
+            yield {"data": record}
 
     def post_process(
         self,
@@ -138,5 +160,39 @@ class RiotAPIStream(RESTStream):
         Returns:
             The updated record dictionary, or ``None`` to skip the record.
         """
-        # TODO: Delete this method if not needed.
-        return row
+        if "app_rate_limit" in row.keys():
+            self.update_rate_limit_state(
+                routing_value=self.routing_value(context),
+                new_info=row["app_rate_limit"]
+            )
+        if "method_rate_limit" in row.keys():
+            self.update_rate_limit_state(
+                routing_value=self.routing_value(context),
+                new_info=row["method_rate_limit"],
+                endpoint=self.get_url(context)
+            )
+        if "data" not in row.keys():
+            raise Exception(row)
+        return row["data"]
+
+    def update_rate_limit_state(
+        self,
+        routing_value: str,
+        new_info: _RateLimitRecord,
+        endpoint: str | None = None,
+    ):
+
+        if not "rate_limits" in self._tap_state.keys():
+            self._tap_state["rate_limits"] = {}
+
+        if not routing_value in self._tap_state["rate_limits"].keys():
+            self._tap_state["rate_limits"][routing_value] = {}
+
+        key = endpoint if endpoint else "app"
+
+        if not self._tap_state["rate_limits"][routing_value].get(key):
+            self._tap_state["rate_limits"][routing_value][key] = new_info
+        else:
+            current = self._tap_state["rate_limits"][routing_value].get(key)
+            if current.datetime_returned < new_info.datetime_returned:
+                self._tap_state["rate_limits"][routing_value][key] = new_info

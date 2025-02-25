@@ -1,5 +1,4 @@
-import requests
-from typing import Any, Iterable
+from typing import Any
 
 from singer_sdk import typing as th  # JSON Schema typing helpers
 from singer_sdk.helpers import types
@@ -67,13 +66,16 @@ class TFTMatchListMixin:
         )
     ).to_dict()
 
-    def parse_response(self, response: requests.Response) -> Iterable[dict]:
-        for item in super().parse_response(response):
-            yield {"matchId": item}
-
     def get_child_context(
         self,
         record: types.Record,
         context: types.Context | None,
     ) -> types.Context | None:
-        return record
+        return record | context
+
+    def post_process(
+            self,
+            row: dict,
+            context: types.Context | None = None,  # noqa: ARG002
+    ) -> dict | None:
+        return {"matchId": super().post_process(row, context)}

@@ -1,4 +1,5 @@
-from __future__ import annotations
+from typing import NamedTuple
+from datetime import datetime
 
 
 def flatten_config(
@@ -37,3 +38,10 @@ REGION_ROUTING_MAP = {
     "tr1": "europe",
     "ru": "europe",
 }
+
+
+class _RateLimitRecord(NamedTuple):
+
+    datetime_returned: datetime
+    rate_cap: str
+    rate_count: str
