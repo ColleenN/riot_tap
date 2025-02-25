@@ -3,7 +3,11 @@ from __future__ import annotations
 from singer_sdk import typing as th  # JSON Schema typing helpers
 
 from tap_riotapi.client import RiotAPIStream
-from tap_riotapi.streams.mixins import TFTMatchListMixin, TFTMatchDetailMixin, TFTRankedLadderMixin
+from tap_riotapi.streams.mixins import (
+    TFTMatchListMixin,
+    TFTMatchDetailMixin,
+    TFTRankedLadderMixin,
+)
 from tap_riotapi.utils import ROMAN_NUMERALS, NON_APEX_TIERS, flatten_config
 
 
@@ -23,10 +27,7 @@ class NormalTierRankedLadderStream(TFTRankedLadderMixin, RiotAPIStream):
         league_list = []
         for item in flatten_config(self.config["followed_leagues"]):
             if item["name"] in NON_APEX_TIERS:
-                new_item = {
-                    "tier": item["name"].upper(),
-                    "region": item["region"]
-                }
+                new_item = {"tier": item["name"].upper(), "region": item["region"]}
                 if "division" in item:
                     league_list.append(new_item)
                 else:

@@ -8,7 +8,7 @@ from singer_sdk.helpers import types
 
 from tap_riotapi.client import RiotAPIStream
 from tap_riotapi.streams.mixins import TFTMatchDetailMixin, TFTMatchListMixin
-from tap_riotapi.utils import flatten_config
+from tap_riotapi.utils import flatten_config, REGION_ROUTING_MAP
 
 
 class TFTPlayerByNameStream(RiotAPIStream):
@@ -21,14 +21,13 @@ class TFTPlayerByNameStream(RiotAPIStream):
             th.StringType,
             required=True,
             title="Player UUID",
-            description="Globally unique identifier for Riot Account."
+            description="Globally unique identifier for Riot Account.",
         )
     ).to_dict()
 
     @property
     def url_base(self) -> str:
-        return "https://americas.api.riotgames.com"
-
+        return "https://{region_routing_value}.api.riotgames.com"
 
     @property
     def partitions(self) -> list[dict] | None:
@@ -36,10 +35,17 @@ class TFTPlayerByNameStream(RiotAPIStream):
         player_list = []
         for player in flatten_config(self.config["followed_players"]):
             name, tagline = player["name"].split("#")
+            if player["region"].lower() not in REGION_ROUTING_MAP.keys():
+                continue
             player_list.append(
-                {"gameName": name, "tagLine": tagline, "region": player["region"]})
+                {
+                    "gameName": name,
+                    "tagLine": tagline,
+                    "platform_routing_value": player["region"],
+                    "region_routing_value": REGION_ROUTING_MAP[player["region"]],
+                }
+            )
         return player_list
-
 
     def get_child_context(
         self,

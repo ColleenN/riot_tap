@@ -5,7 +5,11 @@ from singer_sdk.helpers import types
 
 from tap_riotapi.client import RiotAPIStream
 from tap_riotapi.utils import APEX_TIERS
-from tap_riotapi.streams.mixins import TFTMatchListMixin, TFTMatchDetailMixin, TFTRankedLadderMixin
+from tap_riotapi.streams.mixins import (
+    TFTMatchListMixin,
+    TFTMatchDetailMixin,
+    TFTRankedLadderMixin,
+)
 
 
 class ApexTierRankedLadderStream(TFTRankedLadderMixin, RiotAPIStream):
@@ -17,7 +21,7 @@ class ApexTierRankedLadderStream(TFTRankedLadderMixin, RiotAPIStream):
             th.StringType,
             required=True,
             title="Summoner ID",
-            description="Unique identifier for league player account"
+            description="Unique identifier for league player account",
         ),
     ).to_dict()
 
@@ -48,7 +52,7 @@ class ApexTierRankedLadderSummonerIDStream(RiotAPIStream):
             th.StringType,
             required=True,
             title="Player UUID",
-            description="Globally unique identifier for Riot Account."
+            description="Globally unique identifier for Riot Account.",
         )
     )
 

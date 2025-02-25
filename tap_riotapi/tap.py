@@ -33,10 +33,7 @@ class TapRiotAPI(Tap):
             title="Followed Players",
             description="Players for whom we would like to sync match data",
         ),
-        th.Property(
-            "following",
-            th.PropertiesList()
-        )
+        th.Property("following", th.PropertiesList()),
     ).to_dict()
 
     def discover_streams(self) -> list[RiotAPIStream]:

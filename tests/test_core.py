@@ -1,19 +1,16 @@
 """Tests standard tap features using the built-in SDK tests library."""
 
-
 from singer_sdk.testing import get_tap_test_class
 
 from tap_riotapi.tap import TapRiotAPI
 
 SAMPLE_CONFIG_BASE = {
-    "auth_token": "",
+    "auth_token": "RGAPI-a574c6e3-3223-4cb7-9a21-10afd186b02b",
 }
-PLAYER_CONFIG = {
-    "followed_players": {"NA": ["SupremeKitteh#NA1"]}
-}
+PLAYER_CONFIG = {"followed_players": {"NA": ["SupremeKitteh#NA1"]}}
 LEAGUE_CONFIG = {
-    "followed_leagues":{
-        "NA": [
+    "followed_leagues": {
+        "NA1": [
             {"name": "challenger"},
             {"name": "diamond"},
             {"name": "iron", "division": 4},

@@ -114,11 +114,10 @@ class RiotAPIStream(RESTStream):
         Yields:
             Each record from the source.
         """
-        # TODO: Parse response body and return a set of records.
-        yield from extract_jsonpath(
-            self.records_jsonpath,
-            input=response.json(parse_float=decimal.Decimal),
-        )
+
+        # Record rate limits here...
+
+        yield from super().parse_response(response)
 
     def post_process(
         self,

@@ -7,16 +7,14 @@ from singer_sdk.helpers import types
 
 class TFTRankedLadderMixin:
 
-    def get_url_params(
-        self, *args, **kwargs
-    ) -> dict[str, Any]:
+    def get_url_params(self, *args, **kwargs) -> dict[str, Any]:
         params = super().get_url_params(*args, **kwargs)
         params.update({"queue": "RANKED_TFT"})
         return params
 
     @property
     def url_base(self) -> str:
-        return f"https://na1.api.riotgames.com"
+        return "https://{platform_routing_value}.api.riotgames.com"
 
 
 class TFTMatchDetailMixin:
@@ -32,7 +30,7 @@ class TFTMatchDetailMixin:
             ),
             required=True,
             title="Metadata",
-            description="Match metadata."
+            description="Match metadata.",
         ),
         th.Property(
             "info",
@@ -49,17 +47,17 @@ class TFTMatchDetailMixin:
                 th.Property("tft_game_type", th.StringType),
                 th.Property("tft_set_core_name", th.StringType),
                 th.Property("tft_set_number", th.NumberType),
-                 # TODO: "participants" schema
+                # TODO: "participants" schema
             ),
             required=True,
             title="Info",
-            description="Describes match end state."
-        )
+            description="Describes match end state.",
+        ),
     ).to_dict()
 
     @property
     def url_base(self) -> str:
-        return "https://americas.api.riotgames.com"
+        return "https://{region_routing_value}.api.riotgames.com"
 
 
 class TFTMatchListMixin:
@@ -71,7 +69,7 @@ class TFTMatchListMixin:
             th.ArrayType(th.StringType),
             required=False,
             title="Match Identifier",
-            description="Identifies a single game of TFT."
+            description="Identifies a single game of TFT.",
         )
     ).to_dict()
 
@@ -81,7 +79,7 @@ class TFTMatchListMixin:
 
     @property
     def url_base(self) -> str:
-        return "https://americas.api.riotgames.com"
+        return "https://{region_routing_value}.api.riotgames.com"
 
     def get_child_context(
         self,

@@ -1,7 +1,9 @@
 from __future__ import annotations
 
 
-def flatten_config(config_dict: dict[str, list[dict]] | dict[str, list[str]]) -> list[dict]:
+def flatten_config(
+    config_dict: dict[str, list[dict]] | dict[str, list[str]],
+) -> list[dict]:
 
     flattened = []
     for region, region_config_value in config_dict.items():
@@ -17,3 +19,23 @@ def flatten_config(config_dict: dict[str, list[dict]] | dict[str, list[str]]) ->
 ROMAN_NUMERALS = {"1": "I", "2": "II", "3": "III", "4": "IV"}
 NON_APEX_TIERS = {"diamond", "emerald", "platinum", "gold", "silver", "bronze", "iron"}
 APEX_TIERS = {"challenger", "grandmaster", "master"}
+
+REGION_ROUTING_MAP = {
+    "na1": "americas",
+    "br1": "americas",
+    "la1": "americas",
+    "la2": "americas",
+    "jp1": "asia",
+    "kr": "asia",
+    "oc1": "asia",
+    "ph2": "asia",
+    "sg2": "asia",
+    "th2": "asia",
+    "tw2": "asia",
+    "vn2": "asia",
+    "me1": "europe",
+    "eun1": "europe",
+    "euw1": "europe",
+    "tr1": "europe",
+    "ru": "europe",
+}

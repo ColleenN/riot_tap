@@ -1,35 +1,35 @@
 from .tft_player_streams import (
     TFTPlayerByNameStream,
     TFTPlayerMatchHistoryStream,
-    TFTPlayerMatchDetailStream
+    TFTPlayerMatchDetailStream,
 )
 from .ranked_tft_apex_league_streams import (
     ApexTierRankedLadderStream,
     ApexTierRankedLadderSummonerIDStream,
     ApexTierRankedLadderMatchHistoryStream,
-    ApexTierRankedLadderMatchDetailStream
+    ApexTierRankedLadderMatchDetailStream,
 )
 from .ranked_tft_normal_league_streams import (
     NormalTierRankedLadderStream,
     NormalTierRankedLadderMatchHistoryStream,
-    NormalTierRankedLadderMatchDetailStream
+    NormalTierRankedLadderMatchDetailStream,
 )
 
 TFT_PLAYER_STREAMS = [
     TFTPlayerByNameStream,
     TFTPlayerMatchHistoryStream,
-    TFTPlayerMatchDetailStream
+    TFTPlayerMatchDetailStream,
 ]
 
 NORMAL_TIER_STREAMS = [
     NormalTierRankedLadderStream,
     NormalTierRankedLadderMatchHistoryStream,
-    NormalTierRankedLadderMatchDetailStream
+    NormalTierRankedLadderMatchDetailStream,
 ]
 
 APEX_TIER_STREAMS = [
     ApexTierRankedLadderStream,
     ApexTierRankedLadderSummonerIDStream,
     ApexTierRankedLadderMatchHistoryStream,
-    ApexTierRankedLadderMatchDetailStream
+    ApexTierRankedLadderMatchDetailStream,
 ]
