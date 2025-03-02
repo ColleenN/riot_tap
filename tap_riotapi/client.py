@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 from datetime import datetime
+from dateutil import parser
 from time import sleep
 import typing as t
 
@@ -121,9 +122,7 @@ class RiotAPIStream(RESTStream):
         Yields:
             Each record from the source.
         """
-        timestamp = datetime.strptime(
-            response.headers["Date"], "%a, %d %b %Y %H:%M:%S %Z"
-        )
+        timestamp = parser.parse(response.headers["Date"])
 
         app_rate_limit = _RateLimitRecord(
             datetime_returned=timestamp,
@@ -164,12 +163,12 @@ class RiotAPIStream(RESTStream):
         if "app_rate_limit" in row.keys():
             self.tap_state["rate_limits"].log_response(
                 routing_value=self.routing_value(context),
-                new_info=row["app_rate_limit"],
+                rate_limit=row["app_rate_limit"],
             )
         if "method_rate_limit" in row.keys():
             self.tap_state["rate_limits"].log_response(
                 routing_value=self.routing_value(context),
-                new_info=row["method_rate_limit"],
+                rate_limit=row["method_rate_limit"],
                 endpoint=self.get_url(context),
             )
         if "data" not in row.keys():

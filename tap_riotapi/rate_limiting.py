@@ -1,6 +1,9 @@
 from collections import deque
-from datetime import datetime, timedelta
+from datetime import datetime, timedelta, timezone
+from math import remainder
 from typing import NamedTuple
+
+from sqlalchemy.event import remove
 
 from tap_riotapi.utils import REGION_ROUTING_MAP
 
@@ -15,12 +18,13 @@ class RateLimitBucket:
 
     def log_request(self, req_timestamp: datetime | None = None):
         if req_timestamp is None:
-            req_timestamp = datetime.now()
+            req_timestamp = datetime.now(timezone.utc).astimezone()
         self._request_log.append(req_timestamp)
         self.reported_request_count += 1
 
     def prune(self):
-        while self._request_log and self._request_log[0] < datetime.now() - timedelta(
+        mark_timestamp = datetime.now(timezone.utc).astimezone()
+        while self._request_log and self._request_log[0] < mark_timestamp - timedelta(
             seconds=self.duration
         ):
             self._request_log.popleft()
@@ -30,12 +34,19 @@ class RateLimitBucket:
         return self._request_log.maxlen - self.reported_request_count
 
     def wait(self):
+        if self.remaining() > 0:
+            return 0
+
         ready_time = self._request_log[0] + timedelta(seconds=self.duration)
-        if ready_time < datetime.now():
+        mark_timestamp = datetime.now(timezone.utc).astimezone()
+        if ready_time < mark_timestamp:
             self.prune()
             return 0
-        return (ready_time - datetime.now()).total_seconds()
 
+        return (ready_time - mark_timestamp).total_seconds()
+
+    def __repr__(self):
+        return f"{len(self._request_log)}:{self.duration}"
 
 class _RateLimitRecord(NamedTuple):
 
@@ -56,7 +67,7 @@ class RateLimitState:
     def set_up_buckets(self, routing_value: str, key: str, cap_string: str):
         key_records = self._rate_limits[routing_value].setdefault(key, {})
         for str_record in cap_string.split(","):
-            size, cap = str_record.split(":")
+            cap, size = str_record.split(":")
             if size not in key_records.keys():
                 key_records[size] = RateLimitBucket(int(size), int(cap))
         return key_records
@@ -71,8 +82,11 @@ class RateLimitState:
         key = endpoint if endpoint else "app"
         app_records = self.set_up_buckets(routing_value, key, rate_limit.rate_cap)
         for str_record in rate_limit.rate_count.split(","):
-            size, count = str_record.split(":")
+            count, size = str_record.split(":")
+            #try:
             app_records[size].log_request(rate_limit.datetime_returned)
+            #except KeyError:
+            #    raise KeyError(app_records.keys())
             app_records[size].reported_request_count = int(count)
             app_records[size].prune()
 
