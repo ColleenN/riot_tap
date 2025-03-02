@@ -11,7 +11,7 @@ class RateLimitBucket:
 
         self.duration = duration
         self.reported_request_count = 0
-        self._request_log = deque(maxlen=cap)
+        self._request_log: deque[datetime] = deque(maxlen=cap)
 
     def log_request(self, req_timestamp: datetime | None = None):
         if req_timestamp is None:
@@ -28,6 +28,13 @@ class RateLimitBucket:
 
     def remaining(self):
         return self._request_log.maxlen - self.reported_request_count
+
+    def wait(self):
+        ready_time = self._request_log[0] + timedelta(seconds=self.duration)
+        if ready_time < datetime.now():
+            self.prune()
+            return 0
+        return (ready_time - datetime.now()).total_seconds()
 
 
 class _RateLimitRecord(NamedTuple):
@@ -69,19 +76,19 @@ class RateLimitState:
             app_records[size].reported_request_count = int(count)
             app_records[size].prune()
 
-    def is_request_allowed(self, routing_value: str, endpoint: str):
+
+    def request_wait(self, routing_value: str, endpoint: str) -> int:
+
+        min_wait_needed = 0
 
         for bucket in self._rate_limits[routing_value].get(endpoint, {}).values():
             bucket.prune()
-            if not bucket.remaining() > 0:
-                return False
+            min_wait_needed = max(min_wait_needed, bucket.wait())
 
         for bucket in self._rate_limits[routing_value].get("app", {}).values():
             bucket.prune()
-            if not bucket.remaining() > 0:
-                return False
+            min_wait_needed = max(min_wait_needed, bucket.wait())
 
-        return True
-
+        return min_wait_needed
 
 # Some kind of rate limit mixin to handle Retry-After header?

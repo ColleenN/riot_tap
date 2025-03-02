@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 from datetime import datetime
+from time import sleep
 import typing as t
 
 from singer_sdk.authenticators import APIKeyAuthenticator
@@ -174,3 +175,11 @@ class RiotAPIStream(RESTStream):
         if "data" not in row.keys():
             raise Exception(row)
         return row["data"]
+
+    def _request(
+            self,
+            prepared_request: requests.PreparedRequest,
+            context: Context | None,
+    ) -> requests.Response:
+        sleep(self.tap_state["rate_limits"].request_wait(self.routing_value(context), self.path))
+        return super()._request(prepared_request, context)
