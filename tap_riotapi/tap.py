@@ -8,11 +8,19 @@ from singer_sdk import typing as th  # JSON schema typing helpers
 
 from tap_riotapi import streams
 from tap_riotapi.client import RiotAPIStream
+from tap_riotapi.rate_limiting import RateLimitState
 from tap_riotapi.utils import *
 
 
 class TapRiotAPI(Tap):
     """RiotAPI tap class."""
+
+    def __init__(self, **kwargs) -> None:
+
+        super().__init__(**kwargs)
+
+        if not "rate_limits" in self.state.keys():
+            self.state["rate_limits"] = RateLimitState()
 
     name = "tap-riotapi"
 

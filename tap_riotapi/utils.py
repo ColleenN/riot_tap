@@ -1,7 +1,3 @@
-from typing import NamedTuple
-from datetime import datetime
-
-
 def flatten_config(
     config_dict: dict[str, list[dict]] | dict[str, list[str]],
 ) -> list[dict]:
@@ -38,10 +34,3 @@ REGION_ROUTING_MAP = {
     "tr1": "europe",
     "ru": "europe",
 }
-
-
-class _RateLimitRecord(NamedTuple):
-
-    datetime_returned: datetime
-    rate_cap: str
-    rate_count: str
