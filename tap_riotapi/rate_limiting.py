@@ -76,7 +76,6 @@ class RateLimitState:
             app_records[size].reported_request_count = int(count)
             app_records[size].prune()
 
-
     def request_wait(self, routing_value: str, endpoint: str) -> int:
 
         min_wait_needed = 0
@@ -90,5 +89,6 @@ class RateLimitState:
             min_wait_needed = max(min_wait_needed, bucket.wait())
 
         return min_wait_needed
+
 
 # Some kind of rate limit mixin to handle Retry-After header?

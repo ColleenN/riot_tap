@@ -177,9 +177,13 @@ class RiotAPIStream(RESTStream):
         return row["data"]
 
     def _request(
-            self,
-            prepared_request: requests.PreparedRequest,
-            context: Context | None,
+        self,
+        prepared_request: requests.PreparedRequest,
+        context: Context | None,
     ) -> requests.Response:
-        sleep(self.tap_state["rate_limits"].request_wait(self.routing_value(context), self.path))
+        sleep(
+            self.tap_state["rate_limits"].request_wait(
+                self.routing_value(context), self.path
+            )
+        )
         return super()._request(prepared_request, context)
