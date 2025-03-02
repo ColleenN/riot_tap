@@ -9,7 +9,7 @@ from singer_sdk.authenticators import APIKeyAuthenticator
 from singer_sdk.pagination import BaseAPIPaginator  # noqa: TC002
 from singer_sdk.streams import RESTStream
 
-from tap_riotapi.utils import _RateLimitRecord
+from tap_riotapi.rate_limiting import _RateLimitRecord
 
 if t.TYPE_CHECKING:
     import requests
@@ -161,38 +161,16 @@ class RiotAPIStream(RESTStream):
             The updated record dictionary, or ``None`` to skip the record.
         """
         if "app_rate_limit" in row.keys():
-            self.update_rate_limit_state(
+            self.tap_state["rate_limits"].log_response(
                 routing_value=self.routing_value(context),
-                new_info=row["app_rate_limit"]
+                new_info=row["app_rate_limit"],
             )
         if "method_rate_limit" in row.keys():
-            self.update_rate_limit_state(
+            self.tap_state["rate_limits"].log_response(
                 routing_value=self.routing_value(context),
                 new_info=row["method_rate_limit"],
-                endpoint=self.get_url(context)
+                endpoint=self.get_url(context),
             )
         if "data" not in row.keys():
             raise Exception(row)
         return row["data"]
-
-    def update_rate_limit_state(
-        self,
-        routing_value: str,
-        new_info: _RateLimitRecord,
-        endpoint: str | None = None,
-    ):
-
-        if not "rate_limits" in self._tap_state.keys():
-            self._tap_state["rate_limits"] = {}
-
-        if not routing_value in self._tap_state["rate_limits"].keys():
-            self._tap_state["rate_limits"][routing_value] = {}
-
-        key = endpoint if endpoint else "app"
-
-        if not self._tap_state["rate_limits"][routing_value].get(key):
-            self._tap_state["rate_limits"][routing_value][key] = new_info
-        else:
-            current = self._tap_state["rate_limits"][routing_value].get(key)
-            if current.datetime_returned < new_info.datetime_returned:
-                self._tap_state["rate_limits"][routing_value][key] = new_info

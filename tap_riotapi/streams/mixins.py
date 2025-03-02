@@ -74,8 +74,8 @@ class TFTMatchListMixin:
         return record | context
 
     def post_process(
-            self,
-            row: dict,
-            context: types.Context | None = None,  # noqa: ARG002
+        self,
+        row: dict,
+        context: types.Context | None = None,  # noqa: ARG002
     ) -> dict | None:
         return {"matchId": super().post_process(row, context)}
