@@ -48,6 +48,7 @@ class RateLimitBucket:
     def __repr__(self):
         return f"{len(self._request_log)}:{self.duration}"
 
+
 class _RateLimitRecord(NamedTuple):
 
     datetime_returned: datetime
@@ -83,10 +84,7 @@ class RateLimitState:
         app_records = self.set_up_buckets(routing_value, key, rate_limit.rate_cap)
         for str_record in rate_limit.rate_count.split(","):
             count, size = str_record.split(":")
-            #try:
             app_records[size].log_request(rate_limit.datetime_returned)
-            #except KeyError:
-            #    raise KeyError(app_records.keys())
             app_records[size].reported_request_count = int(count)
             app_records[size].prune()
 

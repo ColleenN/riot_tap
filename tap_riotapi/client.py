@@ -2,20 +2,31 @@
 
 from __future__ import annotations
 
-from datetime import datetime
 from dateutil import parser
 from time import sleep
-import typing as t
+from typing import TYPE_CHECKING
 
+from backoff import expo
 from singer_sdk.authenticators import APIKeyAuthenticator
 from singer_sdk.pagination import BaseAPIPaginator  # noqa: TC002
 from singer_sdk.streams import RESTStream
 
 from tap_riotapi.rate_limiting import _RateLimitRecord
 
-if t.TYPE_CHECKING:
+if TYPE_CHECKING:
     import requests
     from singer_sdk.helpers.types import Context
+    from typing import Any, Callable, Generator, Iterable
+
+
+def generate_wait(exception: Any) -> int | None:
+
+    rsps = getattr(exception, "response", None)
+
+    if rsps and rsps.status_code == 429 and "Retry-After" in rsps.headers:
+        return rsps.headers["Retry-After"]
+
+    return None
 
 
 class RiotAPIStream(RESTStream):
@@ -69,8 +80,8 @@ class RiotAPIStream(RESTStream):
     def get_url_params(
         self,
         context: Context | None,  # noqa: ARG002
-        next_page_token: t.Any | None,  # noqa: ANN401
-    ) -> dict[str, t.Any]:
+        next_page_token: Any | None,  # noqa: ANN401
+    ) -> dict[str, Any]:
         """Return a dictionary of values to be used in URL parameterization.
 
         Args:
@@ -91,7 +102,7 @@ class RiotAPIStream(RESTStream):
     def prepare_request_payload(
         self,
         context: Context | None,  # noqa: ARG002
-        next_page_token: t.Any | None,  # noqa: ARG002, ANN401
+        next_page_token: Any | None,  # noqa: ARG002, ANN401
     ) -> dict | None:
         """Prepare the data payload for the REST API request.
 
@@ -113,7 +124,7 @@ class RiotAPIStream(RESTStream):
         else:
             return context["platform_routing_value"]
 
-    def parse_response(self, response: requests.Response) -> t.Iterable[dict]:
+    def parse_response(self, response: requests.Response) -> Iterable[dict]:
         """Parse the response and return an iterator of result records.
 
         Args:
@@ -169,7 +180,7 @@ class RiotAPIStream(RESTStream):
             self.tap_state["rate_limits"].log_response(
                 routing_value=self.routing_value(context),
                 rate_limit=row["method_rate_limit"],
-                endpoint=self.get_url(context),
+                endpoint=self.path,
             )
         if "data" not in row.keys():
             raise Exception(row)
@@ -180,9 +191,27 @@ class RiotAPIStream(RESTStream):
         prepared_request: requests.PreparedRequest,
         context: Context | None,
     ) -> requests.Response:
+
         sleep(
             self.tap_state["rate_limits"].request_wait(
                 self.routing_value(context), self.path
             )
         )
         return super()._request(prepared_request, context)
+
+    def backoff_runtime(  # noqa: PLR6301
+        self,
+        *,
+        value: Callable[[Any], int],
+    ) -> Generator[int, None, None]:
+        exception = yield  # type: ignore[misc]
+        backup_gen = expo(factor=2)
+        backup_gen.send(None)
+        while True:
+            if result := value(exception):
+                exception = yield result
+            else:
+                yield from backup_gen
+
+    def backoff_wait_generator(self) -> Generator[float, None, None]:
+        return self.backoff_runtime(value=generate_wait)
