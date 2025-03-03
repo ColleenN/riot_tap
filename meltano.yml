@@ -21,9 +21,9 @@ plugins:
       label: Token
       description: The token to use for authentication
 
-    - name: followed_players
+    - name: following
       label: Follow
-      description: Players we want to sync match data for
+      description: Items we want to sync match data for
 
     settings_group_validation:
     - [auth_token]
