@@ -58,11 +58,17 @@ class TFTMatchListMixin:
     path = "/tft/match/v1/matches/by-puuid/{puuid}/ids"
     schema = th.PropertiesList(
         th.Property(
-            "",
-            th.ArrayType(th.StringType),
-            required=False,
+            "matchId",
+            th.StringType,
+            required=True,
             title="Match Identifier",
             description="Identifies a single game of TFT.",
+        ),
+        th.Property(
+            "puuid",
+            th.StringType,
+            required=False,
+            title="Player Identifier"
         )
     ).to_dict()
 
