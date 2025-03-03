@@ -66,6 +66,7 @@ class RateLimitState:
             self._rate_limits.setdefault(value, {})
 
     def set_up_buckets(self, routing_value: str, key: str, cap_string: str):
+
         key_records = self._rate_limits[routing_value].setdefault(key, {})
         for str_record in cap_string.split(","):
             cap, size = str_record.split(":")
@@ -80,6 +81,9 @@ class RateLimitState:
         endpoint: str | None = None,
     ):
 
+        if routing_value in REGION_ROUTING_MAP.keys():
+            routing_value = REGION_ROUTING_MAP[routing_value]
+
         key = endpoint if endpoint else "app"
         app_records = self.set_up_buckets(routing_value, key, rate_limit.rate_cap)
         for str_record in rate_limit.rate_count.split(","):
@@ -89,6 +93,9 @@ class RateLimitState:
             app_records[size].prune()
 
     def request_wait(self, routing_value: str, endpoint: str) -> int:
+
+        if routing_value in REGION_ROUTING_MAP.keys():
+            routing_value = REGION_ROUTING_MAP[routing_value]
 
         min_wait_needed = 0
 
