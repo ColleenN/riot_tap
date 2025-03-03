@@ -32,7 +32,8 @@ class TFTPlayerByNameStream(RiotAPIStream):
     def partitions(self) -> list[dict] | None:
 
         player_list = []
-        for player in flatten_config(self.config["followed_players"]):
+        player_config, _, _ = flatten_config(self.config["following"])
+        for player in player_config:
             name, tagline = player["name"].split("#")
 
             platform = player["region"].lower()

@@ -33,14 +33,7 @@ class TapRiotAPI(Tap):
             title="Auth Token",
             description="The token to authenticate against the API service",
         ),
-        th.Property(
-            "followed_players",
-            th.ObjectType(),
-            required=False,
-            title="Followed Players",
-            description="Players for whom we would like to sync match data",
-        ),
-        th.Property("followed_leagues", th.ObjectType()),
+        th.Property("following", th.ObjectType(), required=False),
     ).to_dict()
 
     def discover_streams(self) -> list[RiotAPIStream]:
@@ -51,17 +44,19 @@ class TapRiotAPI(Tap):
         """
         stream_types = []
 
-        if "followed_players" in self.config:
+        if not "following" in self.config:
+            raise ConfigValidationError("No streams configured!")
+
+        player_config, apex_league_config, reg_league_config = flatten_config(self.config["following"])
+
+        if player_config:
             stream_types.extend(streams.TFT_PLAYER_STREAMS)
 
-        if "followed_leagues" in self.config:
-            config_items = flatten_config(self.config["followed_leagues"])
-            leagues = set([x["name"] for x in config_items])
-            if leagues & set(APEX_TIERS):
-                stream_types.extend(streams.APEX_TIER_STREAMS)
+        if apex_league_config:
+            stream_types.extend(streams.APEX_TIER_STREAMS)
 
-            if leagues & set(NON_APEX_TIERS):
-                stream_types.extend(streams.NORMAL_TIER_STREAMS)
+        if reg_league_config:
+            stream_types.extend(streams.NORMAL_TIER_STREAMS)
 
         if not stream_types:
             raise ConfigValidationError("No streams configured!")

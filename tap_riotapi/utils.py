@@ -1,19 +1,23 @@
-def flatten_config(
-    config_dict: dict[str, list[dict]] | dict[str, list[str]],
-) -> list[dict]:
+def flatten_config(config_dict: dict[str, dict[str, list]]) -> tuple:
 
-    flattened = []
-    for region, region_config_value in config_dict.items():
+    players = []
+    apex_leagues = []
+    reg_leagues = []
+    for region, region_config_dict in config_dict.items():
+        base = {"region": region}
+        players.extend(
+            [base | {"name": p} for p in region_config_dict.get("players", [])]
+        )
+        for item in region_config_dict.get("leagues", []):
+            if item["name"] in APEX_TIERS:
+                apex_leagues.append(item|base)
+            elif item["name"] in NON_APEX_TIERS:
+                reg_leagues.append(item|base)
 
-        for item in region_config_value:
-            if not isinstance(item, dict):
-                item = {"name": item}
-            flattened.append(item | {"region": region})
-
-    return flattened
+    return players, apex_leagues, reg_leagues
 
 
-ROMAN_NUMERALS = {"1": "I", "2": "II", "3": "III", "4": "IV"}
+ROMAN_NUMERALS = {1: "I", 2: "II", 3: "III", 4: "IV"}
 NON_APEX_TIERS = {"diamond", "emerald", "platinum", "gold", "silver", "bronze", "iron"}
 APEX_TIERS = {"challenger", "grandmaster", "master"}
 
