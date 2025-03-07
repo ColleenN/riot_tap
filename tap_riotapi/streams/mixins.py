@@ -44,7 +44,32 @@ class TFTMatchDetailMixin:
                 th.Property("tft_game_type", th.StringType),
                 th.Property("tft_set_core_name", th.StringType),
                 th.Property("tft_set_number", th.NumberType),
-                th.Property("participants", th.ArrayType(th.ObjectType())),
+                th.Property("participants", th.ArrayType(th.PropertiesList(
+                    th.Property("gold_left", th.NumberType),
+                    th.Property("last_round", th.NumberType),
+                    th.Property("level", th.NumberType),
+                    th.Property("placement", th.NumberType),
+                    th.Property("players_eliminated", th.NumberType),
+                    th.Property("puuid", th.StringType),
+                    th.Property("riotIdGameName", th.StringType),
+                    th.Property("riotIdTagline", th.StringType),
+                    th.Property("time_eliminated", th.NumberType),
+                    th.Property("total_damage_to_players", th.NumberType),
+                    th.Property("win", th.BooleanType),
+                    th.Property("traits", th.ArrayType(th.PropertiesList(
+                        th.Property("name", th.StringType),
+                        th.Property("num_units", th.NumberType),
+                        th.Property("style", th.NumberType),
+                        th.Property("tier_current", th.NumberType),
+                        th.Property("tier_total", th.NumberType),
+                    ))),
+                    th.Property("units", th.ArrayType(th.PropertiesList(
+                        th.Property("character_id", th.StringType),
+                        th.Property("rarity", th.NumberType),
+                        th.Property("tier", th.NumberType),
+                        th.Property("itemNames", th.ArrayType(th.StringType)),
+                    )))
+                ))),
                 # TODO: "participants" schema
             ),
             required=True,
