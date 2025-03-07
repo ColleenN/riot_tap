@@ -44,6 +44,7 @@ class TFTMatchDetailMixin:
                 th.Property("tft_game_type", th.StringType),
                 th.Property("tft_set_core_name", th.StringType),
                 th.Property("tft_set_number", th.NumberType),
+                th.Property("participants", th.ArrayType(th.ObjectType)),
                 # TODO: "participants" schema
             ),
             required=True,

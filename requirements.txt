@@ -2,6 +2,6 @@ singer-sdk~=0.43.1
 meltano
 pytest
 requests~=2.32.3
-python-dateutil~=2.9.0.post0
+python-dateutil
 backoff~=2.2.1
 SQLAlchemy~=2.0.36
