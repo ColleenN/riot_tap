@@ -20,11 +20,11 @@ plugins:
     - name: auth_token
       label: Token
       description: The token to use for authentication
-
+      kind: password
     - name: following
       label: Follow
       description: Items we want to sync match data for
-
+      kind: object
     settings_group_validation:
     - [auth_token]
 
