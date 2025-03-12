@@ -12,3 +12,6 @@ dependencies = [
     "meltano",
     "backoff"
 ]
+
+[project.scripts]
+tap-riotapi = "tap_riotapi.tap:TapRiotAPI.cli"
