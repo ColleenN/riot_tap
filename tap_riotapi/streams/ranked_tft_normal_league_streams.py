@@ -8,7 +8,12 @@ from tap_riotapi.streams.mixins import (
     TFTMatchDetailMixin,
     TFTRankedLadderMixin,
 )
-from tap_riotapi.utils import ROMAN_NUMERALS, NON_APEX_TIERS, REGION_ROUTING_MAP, flatten_config
+from tap_riotapi.utils import (
+    ROMAN_NUMERALS,
+    NON_APEX_TIERS,
+    REGION_ROUTING_MAP,
+    flatten_config,
+)
 
 
 class NormalTierRankedLadderStream(TFTRankedLadderMixin, RiotAPIStream):
@@ -45,9 +50,7 @@ class NormalTierRankedLadderStream(TFTRankedLadderMixin, RiotAPIStream):
                     league_list.append(new_item)
                 else:
                     for n in range(1, 5):
-                        league_list.append(
-                            new_item | {"division": ROMAN_NUMERALS[n]}
-                        )
+                        league_list.append(new_item | {"division": ROMAN_NUMERALS[n]})
         return league_list
 
 

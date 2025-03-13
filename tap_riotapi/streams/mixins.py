@@ -1,4 +1,4 @@
-from typing import Any
+from typing import Any, Iterable
 
 from singer_sdk import typing as th  # JSON Schema typing helpers
 from singer_sdk.helpers import types
@@ -44,32 +44,49 @@ class TFTMatchDetailMixin:
                 th.Property("tft_game_type", th.StringType),
                 th.Property("tft_set_core_name", th.StringType),
                 th.Property("tft_set_number", th.NumberType),
-                th.Property("participants", th.ArrayType(th.PropertiesList(
-                    th.Property("gold_left", th.NumberType),
-                    th.Property("last_round", th.NumberType),
-                    th.Property("level", th.NumberType),
-                    th.Property("placement", th.NumberType),
-                    th.Property("players_eliminated", th.NumberType),
-                    th.Property("puuid", th.StringType),
-                    th.Property("riotIdGameName", th.StringType),
-                    th.Property("riotIdTagline", th.StringType),
-                    th.Property("time_eliminated", th.NumberType),
-                    th.Property("total_damage_to_players", th.NumberType),
-                    th.Property("win", th.BooleanType),
-                    th.Property("traits", th.ArrayType(th.PropertiesList(
-                        th.Property("name", th.StringType),
-                        th.Property("num_units", th.NumberType),
-                        th.Property("style", th.NumberType),
-                        th.Property("tier_current", th.NumberType),
-                        th.Property("tier_total", th.NumberType),
-                    ))),
-                    th.Property("units", th.ArrayType(th.PropertiesList(
-                        th.Property("character_id", th.StringType),
-                        th.Property("rarity", th.NumberType),
-                        th.Property("tier", th.NumberType),
-                        th.Property("itemNames", th.ArrayType(th.StringType)),
-                    )))
-                ))),
+                th.Property(
+                    "participants",
+                    th.ArrayType(
+                        th.PropertiesList(
+                            th.Property("gold_left", th.NumberType),
+                            th.Property("last_round", th.NumberType),
+                            th.Property("level", th.NumberType),
+                            th.Property("placement", th.NumberType),
+                            th.Property("players_eliminated", th.NumberType),
+                            th.Property("puuid", th.StringType),
+                            th.Property("riotIdGameName", th.StringType),
+                            th.Property("riotIdTagline", th.StringType),
+                            th.Property("time_eliminated", th.NumberType),
+                            th.Property("total_damage_to_players", th.NumberType),
+                            th.Property("win", th.BooleanType),
+                            th.Property(
+                                "traits",
+                                th.ArrayType(
+                                    th.PropertiesList(
+                                        th.Property("name", th.StringType),
+                                        th.Property("num_units", th.NumberType),
+                                        th.Property("style", th.NumberType),
+                                        th.Property("tier_current", th.NumberType),
+                                        th.Property("tier_total", th.NumberType),
+                                    )
+                                ),
+                            ),
+                            th.Property(
+                                "units",
+                                th.ArrayType(
+                                    th.PropertiesList(
+                                        th.Property("character_id", th.StringType),
+                                        th.Property("rarity", th.NumberType),
+                                        th.Property("tier", th.NumberType),
+                                        th.Property(
+                                            "itemNames", th.ArrayType(th.StringType)
+                                        ),
+                                    )
+                                ),
+                            ),
+                        )
+                    ),
+                ),
                 # TODO: "participants" schema
             ),
             required=True,
@@ -77,6 +94,21 @@ class TFTMatchDetailMixin:
             description="Describes match end state.",
         ),
     ).to_dict()
+
+    def post_process(
+        self,
+        row: dict,
+        context: types.Context | None = None,  # noqa: ARG002
+    ) -> dict | None:
+
+        self.tap_state.get("match_detail_set", set()).add(context["matchId"])
+        return super().post_process(row, context)
+
+    def get_records(self, context: types.Context | None) -> Iterable[dict[str, Any]]:
+        if context["matchId"] in self.tap_state.get("match_detail_set", set()):
+            yield {"data": {}}
+        else:
+            yield from super().get_records(context)
 
 
 class TFTMatchListMixin:
@@ -90,12 +122,7 @@ class TFTMatchListMixin:
             title="Match Identifier",
             description="Identifies a single game of TFT.",
         ),
-        th.Property(
-            "puuid",
-            th.StringType,
-            required=False,
-            title="Player Identifier"
-        )
+        th.Property("puuid", th.StringType, required=False, title="Player Identifier"),
     ).to_dict()
 
     def get_child_context(

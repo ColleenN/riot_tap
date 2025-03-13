@@ -10,9 +10,9 @@ def flatten_config(config_dict: dict[str, dict[str, list]]) -> tuple:
         )
         for item in region_config_dict.get("leagues", []):
             if item["name"] in APEX_TIERS:
-                apex_leagues.append(item|base)
+                apex_leagues.append(item | base)
             elif item["name"] in NON_APEX_TIERS:
-                reg_leagues.append(item|base)
+                reg_leagues.append(item | base)
 
     return players, apex_leagues, reg_leagues
 

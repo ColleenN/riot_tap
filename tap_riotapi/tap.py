@@ -47,7 +47,9 @@ class TapRiotAPI(Tap):
         if not "following" in self.config:
             raise ConfigValidationError("No streams configured!")
 
-        player_config, apex_league_config, reg_league_config = flatten_config(self.config["following"])
+        player_config, apex_league_config, reg_league_config = flatten_config(
+            self.config["following"]
+        )
 
         if player_config:
             stream_types.extend(streams.TFT_PLAYER_STREAMS)
