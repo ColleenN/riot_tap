@@ -77,28 +77,6 @@ class RiotAPIStream(RESTStream):
         """
         return super().get_new_paginator()
 
-    def get_url_params(
-        self,
-        context: Context | None,  # noqa: ARG002
-        next_page_token: Any | None,  # noqa: ANN401
-    ) -> dict[str, Any]:
-        """Return a dictionary of values to be used in URL parameterization.
-
-        Args:
-            context: The stream context.
-            next_page_token: The next page index or value.
-
-        Returns:
-            A dictionary of URL query parameters.
-        """
-        params: dict = {}
-        if next_page_token:
-            params["page"] = next_page_token
-        if self.replication_key:
-            params["sort"] = "asc"
-            params["order_by"] = self.replication_key
-        return params
-
     def prepare_request_payload(
         self,
         context: Context | None,  # noqa: ARG002
@@ -147,7 +125,10 @@ class RiotAPIStream(RESTStream):
         )
 
         data_iter = iter(super().parse_response(response))
-        first_record = next(data_iter)
+        try:
+            first_record = next(data_iter)
+        except StopIteration:
+            first_record = None
         yield {
             "data": first_record,
             "method_rate_limit": method_rate_limit,

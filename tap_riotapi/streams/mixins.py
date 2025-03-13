@@ -1,7 +1,11 @@
 from typing import Any, Iterable
+from math import floor
 
 from singer_sdk import typing as th  # JSON Schema typing helpers
 from singer_sdk.helpers import types
+from singer_sdk.pagination import BaseAPIPaginator
+
+from tap_riotapi.utils import RiotAPIPaginator
 
 
 class TFTRankedLadderMixin:
@@ -113,6 +117,10 @@ class TFTMatchDetailMixin:
 
 class TFTMatchListMixin:
 
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        self._page_size = kwargs.get("page_size", 20)
+
     path = "/tft/match/v1/matches/by-puuid/{puuid}/ids"
     schema = th.PropertiesList(
         th.Property(
@@ -137,4 +145,24 @@ class TFTMatchListMixin:
         row: dict,
         context: types.Context | None = None,  # noqa: ARG002
     ) -> dict | None:
-        return {"matchId": super().post_process(row, context)}
+        data = super().post_process(row, context)
+        if data:
+            return {"matchId": data}
+        return data
+
+    def get_new_paginator(self) -> BaseAPIPaginator:
+        return RiotAPIPaginator(start_value=0, page_size=self._page_size)
+
+    def get_url_params(
+        self,
+        context: types.Context | None,  # noqa: ARG002
+        next_page_token: Any | None,  # noqa: ANN401
+    ) -> dict[str, Any]:
+        return {
+            "count": self._page_size,
+            "start": next_page_token,
+            "startTime": floor(self.get_start_timestamp().timestamp()),
+        }
+
+    def get_start_timestamp(self):
+        return self._tap.initial_timestamp

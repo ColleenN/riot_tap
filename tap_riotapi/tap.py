@@ -2,6 +2,8 @@
 
 from __future__ import annotations
 
+from datetime import date, datetime, timedelta, timezone
+
 from singer_sdk.exceptions import ConfigValidationError
 from singer_sdk import Tap
 from singer_sdk import typing as th  # JSON schema typing helpers
@@ -22,6 +24,11 @@ class TapRiotAPI(Tap):
         if not "rate_limits" in self.state.keys():
             self.state["rate_limits"] = RateLimitState()
 
+        init_date = kwargs["config"].get("start_date", date.today() - timedelta(days=1))
+        self.initial_timestamp = datetime(
+            init_date.year, init_date.month, init_date.day, 0, 0, 0, tzinfo=timezone.utc
+        )
+
     name = "tap-riotapi"
 
     config_jsonschema = th.PropertiesList(
@@ -33,7 +40,8 @@ class TapRiotAPI(Tap):
             title="Auth Token",
             description="The token to authenticate against the API service",
         ),
-        th.Property("following", th.ObjectType(), required=False),
+        th.Property("following", th.ObjectType(), required=True),
+        th.Property("start_date", th.DateType, required=False),
     ).to_dict()
 
     def discover_streams(self) -> list[RiotAPIStream]:
