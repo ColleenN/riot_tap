@@ -12,8 +12,12 @@ class TFTRankedLadderMixin:
 
     routing_type = "platform"
 
-    def get_url_params(self, *args, **kwargs) -> dict[str, Any]:
-        params = super().get_url_params(*args, **kwargs)
+    def get_url_params(
+            self,
+            context: types.Context | None,  # noqa: ARG002
+            next_page_token: Any | None,  # noqa: ANN401
+    ) -> dict[str, Any]:
+        params = super().get_url_params(context, next_page_token)
         params.update({"queue": "RANKED_TFT"})
         return params
 

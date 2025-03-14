@@ -5,6 +5,7 @@ from typing import Any
 
 from singer_sdk import typing as th  # JSON Schema typing helpers
 from singer_sdk.pagination import BaseAPIPaginator, BasePageNumberPaginator
+from singer_sdk.helpers import types
 
 from tap_riotapi.client import RiotAPIStream
 from tap_riotapi.streams.mixins import (
@@ -82,7 +83,16 @@ class NormalTierRankedLadderStream(TFTRankedLadderMixin, RiotAPIStream):
         return league_list
 
     def get_new_paginator(self) -> BaseAPIPaginator:
-        return NonApexLeaguePaginator(start_value=0, page_size=205)
+        return NonApexLeaguePaginator(start_value=1, page_size=205)
+
+    def get_url_params(
+            self,
+            context: types.Context | None,  # noqa: ARG002
+            next_page_token: Any | None,  # noqa: ANN401
+    ) -> dict[str, Any]:
+        params = super().get_url_params(context, next_page_token)
+        params.update({"page": next_page_token})
+        return params
 
 
 class NormalTierRankedLadderMatchHistoryStream(TFTMatchListMixin, RiotAPIStream):
