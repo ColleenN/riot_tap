@@ -86,9 +86,9 @@ class NormalTierRankedLadderStream(TFTRankedLadderMixin, RiotAPIStream):
         return NonApexLeaguePaginator(start_value=1, page_size=205)
 
     def get_url_params(
-            self,
-            context: types.Context | None,  # noqa: ARG002
-            next_page_token: Any | None,  # noqa: ANN401
+        self,
+        context: types.Context | None,  # noqa: ARG002
+        next_page_token: Any | None,  # noqa: ANN401
     ) -> dict[str, Any]:
         params = super().get_url_params(context, next_page_token)
         params.update({"page": next_page_token})
