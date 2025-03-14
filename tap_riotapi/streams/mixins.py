@@ -10,11 +10,6 @@ from singer_sdk.pagination import BaseAPIPaginator, BaseOffsetPaginator
 
 class TFTRankedLadderMixin:
 
-    def __init__(self, *args, **kwargs):
-        super().__init__(*args, **kwargs)
-        self._state_partitioning_keys = {"puuid"}
-
-
     routing_type = "platform"
 
     def get_url_params(
@@ -126,10 +121,6 @@ class TFTMatchDetailMixin:
 
 class TFTMatchListMixin:
 
-    def __init__(self, *args, **kwargs):
-        super().__init__(*args, **kwargs)
-        self._page_size = kwargs.get("page_size", 20)
-
     path = "/tft/match/v1/matches/by-puuid/{puuid}/ids"
     schema = th.PropertiesList(
         th.Property(
@@ -141,6 +132,11 @@ class TFTMatchListMixin:
         ),
         th.Property("puuid", th.StringType, required=False, title="Player Identifier"),
     ).to_dict()
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        self._page_size = kwargs.get("page_size", 20)
+        self._state_partitioning_keys = {"puuid"}
 
     def get_child_context(
         self,
