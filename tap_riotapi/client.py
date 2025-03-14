@@ -34,11 +34,11 @@ class RiotAPIStream(RESTStream):
 
     routing_type = "regional"
 
-    # Update this value if necessary or override `parse_response`.
-    records_jsonpath = "$[*]"
-
-    # Update this value if necessary or override `get_new_paginator`.
-    next_page_token_jsonpath = "$.next_page"  # noqa: S105
+    def routing_value(self, context: Context):
+        if self.routing_type == "regional":
+            return context["region_routing_value"]
+        else:
+            return context["platform_routing_value"]
 
     @property
     def url_base(self) -> str:
@@ -62,21 +62,6 @@ class RiotAPIStream(RESTStream):
             location="header",
         )
 
-    def get_new_paginator(self) -> BaseAPIPaginator:
-        """Create a new pagination helper instance.
-
-        If the source API can make use of the `next_page_token_jsonpath`
-        attribute, or it contains a `X-Next-Page` header in the response
-        then you can remove this method.
-
-        If you need custom pagination that uses page numbers, "next" links, or
-        other approaches, please read the guide: https://sdk.meltano.com/en/v0.25.0/guides/pagination-classes.html.
-
-        Returns:
-            A pagination helper instance.
-        """
-        return super().get_new_paginator()
-
     def prepare_request_payload(
         self,
         context: Context | None,  # noqa: ARG002
@@ -95,12 +80,6 @@ class RiotAPIStream(RESTStream):
         """
         # TODO: Delete this method if no payload is required. (Most REST APIs.)
         return None
-
-    def routing_value(self, context: Context):
-        if self.routing_type == "regional":
-            return context["region_routing_value"]
-        else:
-            return context["platform_routing_value"]
 
     def parse_response(self, response: requests.Response) -> Iterable[dict]:
         """Parse the response and return an iterator of result records.
