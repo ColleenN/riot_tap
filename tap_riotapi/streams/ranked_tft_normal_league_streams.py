@@ -1,4 +1,5 @@
 from __future__ import annotations
+from decimal import Decimal
 from requests import Response
 from typing import Any
 
@@ -15,8 +16,9 @@ from tap_riotapi.utils import (
     ROMAN_NUMERALS,
     NON_APEX_TIERS,
     REGION_ROUTING_MAP,
-    flatten_config
+    flatten_config,
 )
+
 
 class NonApexLeaguePaginator(BasePageNumberPaginator):
 
@@ -38,9 +40,8 @@ class NonApexLeaguePaginator(BasePageNumberPaginator):
         super().__init__(start_value, *args, **kwargs)
         self._page_size = page_size
 
-
     def has_more(self, response: Response) -> bool:
-        return not len(response.content) == self._page_size
+        return len(response.json(parse_float=Decimal)) == self._page_size
 
 
 class NormalTierRankedLadderStream(TFTRankedLadderMixin, RiotAPIStream):
