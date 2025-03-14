@@ -24,6 +24,10 @@ class TFTRankedLadderMixin:
 
 class TFTMatchDetailMixin:
 
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        self._state_partitioning_keys = {"puuid"}
+
     path = "/tft/match/v1/matches/{matchId}"
     schema = th.PropertiesList(
         th.Property(
