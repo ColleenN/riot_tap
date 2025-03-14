@@ -24,14 +24,48 @@ class TapRiotAPI(Tap):
         if not "rate_limits" in self.state.keys():
             self.state["rate_limits"] = RateLimitState()
 
-        init_date_string = kwargs["config"].get("start_date", None)
-        if init_date_string:
-            init_date = datetime.strptime(init_date_string, "%Y-%m-%d")
+        self.initial_timestamp, self.end_timestamp = self._parse_time_range_config(
+            kwargs["config"].get("start_date", None),
+            kwargs["config"].get("end_date", None),
+        )
+
+    @classmethod
+    def _parse_time_range_config(cls, start_config: str, end_config: str):
+        if start_config:
+            init_date = datetime.strptime(start_config, "%Y-%m-%d")
         else:
             init_date = date.today() - timedelta(days=1)
-        self.initial_timestamp = datetime(
+
+        if init_date > date.today():
+            init_date = date.today()
+
+        initial_timestamp = datetime(
             init_date.year, init_date.month, init_date.day, 0, 0, 0, tzinfo=timezone.utc
         )
+
+        if end_config:
+            end_date = datetime.strptime(end_config, "%Y-%m-%d")
+        else:
+            end_date = date.today()
+
+        if end_date < init_date:
+            end_date = init_date
+
+        if end_date >= date.today():
+            end_timestamp = datetime.now(tz=timezone.utc)
+        else:
+            base = datetime(
+                end_date.year,
+                end_date.month,
+                end_date.day + 1,
+                0,
+                0,
+                0,
+                tzinfo=timezone.utc,
+            )
+            end_timestamp = base - timedelta(microseconds=1)
+
+        return initial_timestamp, end_timestamp
 
     name = "tap-riotapi"
 
