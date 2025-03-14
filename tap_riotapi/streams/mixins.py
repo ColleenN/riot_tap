@@ -1,3 +1,4 @@
+from decimal import Decimal
 from typing import Any, Iterable
 from math import floor
 
@@ -170,4 +171,4 @@ class TFTMatchListMixin:
 class MatchHistoryPaginator(BaseOffsetPaginator):
 
     def has_more(self, response: Response) -> bool:
-        return not len(response.content) == self._page_size
+        return len(response.json(parse_float=Decimal)) == self._page_size

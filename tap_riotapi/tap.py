@@ -24,7 +24,11 @@ class TapRiotAPI(Tap):
         if not "rate_limits" in self.state.keys():
             self.state["rate_limits"] = RateLimitState()
 
-        init_date = kwargs["config"].get("start_date", date.today() - timedelta(days=1))
+        init_date_string = kwargs["config"].get("start_date", None)
+        if init_date_string:
+            init_date = datetime.strptime(init_date_string, "%Y-%m-%d")
+        else:
+            init_date = date.today() - timedelta(days=1)
         self.initial_timestamp = datetime(
             init_date.year, init_date.month, init_date.day, 0, 0, 0, tzinfo=timezone.utc
         )
