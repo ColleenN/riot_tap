@@ -32,7 +32,7 @@ class TapRiotAPI(Tap):
     @classmethod
     def _parse_time_range_config(cls, start_config: str, end_config: str):
         if start_config:
-            init_date = datetime.strptime(start_config, "%Y-%m-%d")
+            init_date = datetime.strptime(start_config, "%Y-%m-%d").date()
         else:
             init_date = date.today() - timedelta(days=1)
 
@@ -44,7 +44,7 @@ class TapRiotAPI(Tap):
         )
 
         if end_config:
-            end_date = datetime.strptime(end_config, "%Y-%m-%d")
+            end_date = datetime.strptime(end_config, "%Y-%m-%d").date()
         else:
             end_date = date.today()
 
