@@ -10,6 +10,11 @@ from singer_sdk.pagination import BaseAPIPaginator, BaseOffsetPaginator
 
 class TFTRankedLadderMixin:
 
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        self._state_partitioning_keys = {"puuid"}
+
+
     routing_type = "platform"
 
     def get_url_params(
@@ -166,10 +171,14 @@ class TFTMatchListMixin:
             "count": self._page_size,
             "start": next_page_token,
             "startTime": floor(self.get_start_timestamp().timestamp()),
+            "endTime": floor(self.get_end_timestamp().timestamp()),
         }
 
     def get_start_timestamp(self):
         return self._tap.initial_timestamp
+
+    def get_end_timestamp(self):
+        return self._tap.end_timestamp
 
 
 class MatchHistoryPaginator(BaseOffsetPaginator):
