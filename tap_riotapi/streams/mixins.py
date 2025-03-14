@@ -10,11 +10,6 @@ from singer_sdk.pagination import BaseAPIPaginator, BaseOffsetPaginator
 
 class TFTRankedLadderMixin:
 
-    def __init__(self, *args, **kwargs):
-        super().__init__(*args, **kwargs)
-        self._state_partitioning_keys = {"puuid"}
-
-
     routing_type = "platform"
 
     def get_url_params(
@@ -28,6 +23,10 @@ class TFTRankedLadderMixin:
 
 
 class TFTMatchDetailMixin:
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        self._state_partitioning_keys = {"puuid"}
 
     path = "/tft/match/v1/matches/{matchId}"
     schema = th.PropertiesList(
