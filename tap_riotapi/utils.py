@@ -1,16 +1,3 @@
-from singer_sdk.pagination import BaseOffsetPaginator
-from requests import Response
-
-
-class RiotAPIPaginator(BaseOffsetPaginator):
-
-    def has_more(self, response: Response) -> bool:
-
-        if self._value > 200:
-            return False
-        return not len(response.content) == self._page_size
-
-
 def flatten_config(config_dict: dict[str, dict[str, list]]) -> tuple:
 
     players = []

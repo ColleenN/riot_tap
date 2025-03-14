@@ -1,6 +1,9 @@
 from __future__ import annotations
+from requests import Response
+from typing import Any
 
 from singer_sdk import typing as th  # JSON Schema typing helpers
+from singer_sdk.pagination import BaseAPIPaginator, BasePageNumberPaginator
 
 from tap_riotapi.client import RiotAPIStream
 from tap_riotapi.streams.mixins import (
@@ -12,8 +15,32 @@ from tap_riotapi.utils import (
     ROMAN_NUMERALS,
     NON_APEX_TIERS,
     REGION_ROUTING_MAP,
-    flatten_config,
+    flatten_config
 )
+
+class NonApexLeaguePaginator(BasePageNumberPaginator):
+
+    def __init__(
+        self,
+        start_value: int,
+        page_size: int,
+        *args: Any,
+        **kwargs: Any,
+    ) -> None:
+        """Create a new paginator.
+
+        Args:
+            start_value: Initial value.
+            page_size: Constant page size.
+            args: Paginator positional arguments.
+            kwargs: Paginator keyword arguments.
+        """
+        super().__init__(start_value, *args, **kwargs)
+        self._page_size = page_size
+
+
+    def has_more(self, response: Response) -> bool:
+        return not len(response.content) == self._page_size
 
 
 class NormalTierRankedLadderStream(TFTRankedLadderMixin, RiotAPIStream):
@@ -52,6 +79,9 @@ class NormalTierRankedLadderStream(TFTRankedLadderMixin, RiotAPIStream):
                     for n in range(1, 5):
                         league_list.append(new_item | {"division": ROMAN_NUMERALS[n]})
         return league_list
+
+    def get_new_paginator(self) -> BaseAPIPaginator:
+        return NonApexLeaguePaginator(start_value=0, page_size=205)
 
 
 class NormalTierRankedLadderMatchHistoryStream(TFTMatchListMixin, RiotAPIStream):

@@ -1,11 +1,10 @@
 from typing import Any, Iterable
 from math import floor
 
+from requests import Response
 from singer_sdk import typing as th  # JSON Schema typing helpers
 from singer_sdk.helpers import types
-from singer_sdk.pagination import BaseAPIPaginator
-
-from tap_riotapi.utils import RiotAPIPaginator
+from singer_sdk.pagination import BaseAPIPaginator, BaseOffsetPaginator
 
 
 class TFTRankedLadderMixin:
@@ -151,7 +150,7 @@ class TFTMatchListMixin:
         return data
 
     def get_new_paginator(self) -> BaseAPIPaginator:
-        return RiotAPIPaginator(start_value=0, page_size=self._page_size)
+        return MatchHistoryPaginator(start_value=0, page_size=self._page_size)
 
     def get_url_params(
         self,
@@ -166,3 +165,9 @@ class TFTMatchListMixin:
 
     def get_start_timestamp(self):
         return self._tap.initial_timestamp
+
+
+class MatchHistoryPaginator(BaseOffsetPaginator):
+
+    def has_more(self, response: Response) -> bool:
+        return not len(response.content) == self._page_size
