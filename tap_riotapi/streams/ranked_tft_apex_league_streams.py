@@ -1,7 +1,11 @@
 from __future__ import annotations
 
+from typing import Iterable
+
+import requests
 from singer_sdk import typing as th  # JSON Schema typing helpers
 from singer_sdk.helpers import types
+from singer_sdk.helpers.types import Context
 
 from tap_riotapi.client import RiotAPIStream
 from tap_riotapi.utils import APEX_TIERS, REGION_ROUTING_MAP, flatten_config
@@ -22,6 +26,13 @@ class ApexTierRankedLadderStream(TFTRankedLadderMixin, RiotAPIStream):
             required=True,
             title="Summoner ID",
             description="Unique identifier for league player account",
+        ),
+        th.Property(
+            "puuid",
+            th.StringType,
+            required=True,
+            title="Player UUID",
+            description="Globally unique identifier for Riot Account.",
         ),
     ).to_dict()
 
@@ -49,41 +60,30 @@ class ApexTierRankedLadderStream(TFTRankedLadderMixin, RiotAPIStream):
         record: types.Record,
         context: types.Context | None,
     ) -> types.Context | None:
-        return {"summonerId": record["summonerId"]} | context
+        return record | context if record else context
 
     @property
     def records_jsonpath(self):
         return "$.entries[*]"
 
-
-class ApexTierRankedLadderSummonerIDStream(RiotAPIStream):
-
-    name = "ranked_ladder_summoner_id"
-    path = "/tft/summoner/v1/summoners/{summonerId}"
-    routing_type = "platform"
-    parent_stream_type = ApexTierRankedLadderStream
-    schema = th.PropertiesList(
-        th.Property(
-            "puuid",
-            th.StringType,
-            required=True,
-            title="Player UUID",
-            description="Globally unique identifier for Riot Account.",
-        )
-    ).to_dict()
-
-    def get_child_context(
+    def post_process(
         self,
-        record: types.Record,
-        context: types.Context | None,
-    ) -> types.Context | None:
-        return record | context
+        row: dict,
+        context: Context | None = None,  # noqa: ARG002
+    ) -> dict | None:
+        initial_row = super().post_process(row, context)
+        return context | {
+            "summonerId": initial_row["summonerId"],
+            "puuid": initial_row["puuid"],
+            "lp": initial_row["leaguePoints"],
+            "matches_played": initial_row["wins"] + initial_row["losses"],
+        }
 
 
 class ApexTierRankedLadderMatchHistoryStream(TFTMatchListMixin, RiotAPIStream):
 
     name = "ranked_ladder_match_history"
-    parent_stream_type = ApexTierRankedLadderSummonerIDStream
+    parent_stream_type = ApexTierRankedLadderStream
 
 
 class ApexTierRankedLadderMatchDetailStream(TFTMatchDetailMixin, RiotAPIStream):

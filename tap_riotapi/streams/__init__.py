@@ -5,7 +5,6 @@ from .tft_player_streams import (
 )
 from .ranked_tft_apex_league_streams import (
     ApexTierRankedLadderStream,
-    ApexTierRankedLadderSummonerIDStream,
     ApexTierRankedLadderMatchHistoryStream,
     ApexTierRankedLadderMatchDetailStream,
 )
@@ -29,7 +28,6 @@ NORMAL_TIER_STREAMS = [
 
 APEX_TIER_STREAMS = [
     ApexTierRankedLadderStream,
-    ApexTierRankedLadderSummonerIDStream,
     ApexTierRankedLadderMatchHistoryStream,
     ApexTierRankedLadderMatchDetailStream,
 ]
