@@ -48,7 +48,7 @@ class TFTMatchListMixin:
             context: types.Context | None,
     ) -> Iterable[types.Context | None]:
         if record["matchId"] in self.tap_state.setdefault("match_detail_set", set()):
-            yield from []
+            return []
         yield self.get_child_context(record=record, context=context)
 
     def get_child_context(
@@ -192,10 +192,3 @@ class TFTMatchDetailMixin:
     ):
         super()._increment_stream_state(latest_record, context=context)
         self.tap_state.setdefault("match_detail_set", set()).add(context["matchId"])
-
-
-    def get_records(self, context: types.Context | None) -> Iterable[dict[str, Any]]:
-        if context["matchId"] in self.tap_state.get("match_detail_set", set()):
-            yield {"data": {}}
-        else:
-            yield from super().get_records(context)
