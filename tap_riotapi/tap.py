@@ -2,7 +2,7 @@
 
 from __future__ import annotations
 
-from datetime import date, datetime, timedelta, timezone
+from datetime import datetime, timedelta, timezone
 
 from singer_sdk.exceptions import ConfigValidationError
 from singer_sdk import Tap
@@ -36,11 +36,15 @@ class TapRiotAPI(Tap):
             init_datetime = datetime.now(timezone.utc).replace(hour=0, minute=0, second=0, microsecond=0)
         else:
             init_datetime = datetime.fromisoformat(start_config)
+            if not init_datetime.tzinfo:
+                init_datetime = init_datetime.replace(tzinfo=timezone.utc)
 
         if not end_config or datetime.fromisoformat(end_config) > datetime.now():
             end_datetime = datetime.now(timezone.utc)
         else:
             end_datetime = datetime.fromisoformat(end_config)
+            if not end_datetime.tzinfo:
+                end_datetime = end_datetime.replace(tzinfo=timezone.utc)
 
         if end_datetime < init_datetime:
             end_datetime = init_datetime = timedelta(hours=1)
