@@ -30,42 +30,22 @@ class TapRiotAPI(Tap):
         )
 
     @classmethod
-    def _parse_time_range_config(cls, start_config: str, end_config: str):
-        if start_config:
-            init_date = datetime.strptime(start_config, "%Y-%m-%d").date()
+    def _parse_time_range_config(cls, start_config: str | None, end_config: str | None):
+
+        if not start_config or datetime.fromisoformat(start_config) > datetime.now():
+            init_datetime = datetime.now(timezone.utc).replace(hour=0, minute=0, second=0, microsecond=0)
         else:
-            init_date = date.today() - timedelta(days=1)
+            init_datetime = datetime.fromisoformat(start_config)
 
-        if init_date > date.today():
-            init_date = date.today()
-
-        initial_timestamp = datetime(
-            init_date.year, init_date.month, init_date.day, 0, 0, 0, tzinfo=timezone.utc
-        )
-
-        if end_config:
-            end_date = datetime.strptime(end_config, "%Y-%m-%d").date()
+        if not end_config or datetime.fromisoformat(end_config) > datetime.now():
+            end_datetime = datetime.now(timezone.utc)
         else:
-            end_date = date.today()
+            end_datetime = datetime.fromisoformat(end_config)
 
-        if end_date < init_date:
-            end_date = init_date
+        if end_datetime < init_datetime:
+            end_datetime = init_datetime = timedelta(hours=1)
 
-        if end_date >= date.today():
-            end_timestamp = datetime.now(tz=timezone.utc)
-        else:
-            base = datetime(
-                end_date.year,
-                end_date.month,
-                end_date.day + 1,
-                0,
-                0,
-                0,
-                tzinfo=timezone.utc,
-            )
-            end_timestamp = base - timedelta(microseconds=1)
-
-        return initial_timestamp, end_timestamp
+        return init_datetime, end_datetime
 
     name = "tap-riotapi"
 
