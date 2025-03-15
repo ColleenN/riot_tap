@@ -22,6 +22,87 @@ class TFTRankedLadderMixin:
         return params
 
 
+class TFTMatchListMixin:
+
+    path = "/tft/match/v1/matches/by-puuid/{puuid}/ids"
+    schema = th.PropertiesList(
+        th.Property(
+            "matchId",
+            th.StringType,
+            required=True,
+            title="Match Identifier",
+            description="Identifies a single game of TFT.",
+        ),
+        th.Property("puuid", th.StringType, required=False, title="Player Identifier"),
+        th.Property("endTime", th.DateTimeType)
+    ).to_dict()
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        self._page_size = kwargs.get("page_size", 20)
+        self._state_partitioning_keys = {"puuid"}
+
+    def generate_child_contexts(
+            self,
+            record: types.Record,
+            context: types.Context | None,
+    ) -> Iterable[types.Context | None]:
+        if record["matchId"] in self.tap_state.setdefault("match_detail_set", set()):
+            yield from []
+        yield self.get_child_context(record=record, context=context)
+
+    def get_child_context(
+        self,
+        record: types.Record,
+        context: types.Context | None,
+    ) -> types.Context | None:
+        return context | {"matchId": record["matchId"]}
+
+    def post_process(
+        self,
+        row: dict,
+        context: types.Context | None = None,  # noqa: ARG002
+    ) -> dict | None:
+        data = super().post_process(row, context)
+        if data:
+            return {
+                "matchId": data,
+                "endTime": self.get_end_timestamp()
+            }
+        return None
+
+    def get_new_paginator(self) -> BaseAPIPaginator:
+        return MatchHistoryPaginator(start_value=0, page_size=self._page_size)
+
+    def get_url_params(
+        self,
+        context: types.Context | None,  # noqa: ARG002
+        next_page_token: Any | None,  # noqa: ANN401
+    ) -> dict[str, Any]:
+        return {
+            "count": self._page_size,
+            "start": next_page_token,
+            "startTime": floor(self.get_start_timestamp().timestamp()),
+            "endTime": floor(self.get_end_timestamp().timestamp()),
+        }
+
+    def get_start_timestamp(self):
+        return self._tap.initial_timestamp
+
+    def get_end_timestamp(self):
+        return self._tap.end_timestamp
+
+    @property
+    def is_sorted(self) -> bool:
+        return True
+
+
+class MatchHistoryPaginator(BaseOffsetPaginator):
+
+    def has_more(self, response: Response) -> bool:
+        return len(response.json(parse_float=Decimal)) == self._page_size
+
+
 class TFTMatchDetailMixin:
 
     path = "/tft/match/v1/matches/{matchId}"
@@ -103,81 +184,18 @@ class TFTMatchDetailMixin:
         ),
     ).to_dict()
 
-    def post_process(
-        self,
-        row: dict,
-        context: types.Context | None = None,  # noqa: ARG002
-    ) -> dict | None:
+    def _increment_stream_state(
+            self,
+            latest_record: types.Record,
+            *,
+            context: types.Context | None = None,
+    ):
+        super()._increment_stream_state(latest_record, context=context)
+        self.tap_state.setdefault("match_detail_set", set()).add(context["matchId"])
 
-        self.tap_state.get("match_detail_set", set()).add(context["matchId"])
-        return super().post_process(row, context)
 
     def get_records(self, context: types.Context | None) -> Iterable[dict[str, Any]]:
         if context["matchId"] in self.tap_state.get("match_detail_set", set()):
             yield {"data": {}}
         else:
             yield from super().get_records(context)
-
-
-class TFTMatchListMixin:
-
-    path = "/tft/match/v1/matches/by-puuid/{puuid}/ids"
-    schema = th.PropertiesList(
-        th.Property(
-            "matchId",
-            th.StringType,
-            required=True,
-            title="Match Identifier",
-            description="Identifies a single game of TFT.",
-        ),
-        th.Property("puuid", th.StringType, required=False, title="Player Identifier"),
-    ).to_dict()
-
-    def __init__(self, *args, **kwargs):
-        super().__init__(*args, **kwargs)
-        self._page_size = kwargs.get("page_size", 20)
-        self._state_partitioning_keys = {"puuid"}
-
-    def get_child_context(
-        self,
-        record: types.Record,
-        context: types.Context | None,
-    ) -> types.Context | None:
-        return record | context
-
-    def post_process(
-        self,
-        row: dict,
-        context: types.Context | None = None,  # noqa: ARG002
-    ) -> dict | None:
-        data = super().post_process(row, context)
-        if data:
-            return {"matchId": data}
-        return data
-
-    def get_new_paginator(self) -> BaseAPIPaginator:
-        return MatchHistoryPaginator(start_value=0, page_size=self._page_size)
-
-    def get_url_params(
-        self,
-        context: types.Context | None,  # noqa: ARG002
-        next_page_token: Any | None,  # noqa: ANN401
-    ) -> dict[str, Any]:
-        return {
-            "count": self._page_size,
-            "start": next_page_token,
-            "startTime": floor(self.get_start_timestamp().timestamp()),
-            "endTime": floor(self.get_end_timestamp().timestamp()),
-        }
-
-    def get_start_timestamp(self):
-        return self._tap.initial_timestamp
-
-    def get_end_timestamp(self):
-        return self._tap.end_timestamp
-
-
-class MatchHistoryPaginator(BaseOffsetPaginator):
-
-    def has_more(self, response: Response) -> bool:
-        return len(response.json(parse_float=Decimal)) == self._page_size
