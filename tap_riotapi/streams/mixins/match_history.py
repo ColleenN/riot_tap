@@ -7,10 +7,13 @@ from requests import Response
 from singer_sdk import typing as th
 from singer_sdk.helpers import types
 from singer_sdk.pagination import BaseAPIPaginator, BaseOffsetPaginator
+from singer_sdk.sinks import record
 from singer_sdk.streams.core import REPLICATION_INCREMENTAL
 
+from tap_riotapi.streams.mixins.rest_util import ResumablePaginationMixin
 
-class TFTMatchListMixin:
+
+class TFTMatchListMixin(ResumablePaginationMixin):
 
     replication_key = "endTime"
 
@@ -56,8 +59,12 @@ class TFTMatchListMixin:
             "endTime": floor(self.get_end_timestamp().timestamp()),
         }
 
-    def get_new_paginator(self) -> BaseAPIPaginator:
-        return MatchHistoryPaginator(start_value=0, page_size=self._page_size)
+    def build_paginator_from_state(self, state_partition: dict) -> BaseAPIPaginator:
+        starting_index = 0
+        if state_partition and "last_used_query_params" in state_partition and "session_record_count":
+            partial_page_finished = state_partition["session_record_count"] % state_partition["last_used_query_params"]["count"]
+            starting_index = state_partition["last_used_query_params"]["start"] + partial_page_finished
+        return MatchHistoryPaginator(start_value=starting_index, page_size=self._page_size)
 
     def get_start_timestamp(self):
         return self._tap.initial_timestamp
@@ -106,8 +113,12 @@ class TFTMatchListMixin:
     ):
         state_dict = self.get_context_state(context)
         if latest_record and self.replication_method == REPLICATION_INCREMENTAL:
+            state_dict.setdefault("session_record_count", 0)
+            state_dict["session_record_count"] += 1
             state_dict["last_used_query_params"] = latest_record["url_parms_used"]
-        super()._increment_stream_state(latest_record, context=context)
+
+
+
 
 class MatchHistoryPaginator(BaseOffsetPaginator):
 

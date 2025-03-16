@@ -1,3 +1,5 @@
+import abc
+
 from typing import Iterable
 
 from singer_sdk.helpers.types import Context
@@ -51,4 +53,12 @@ class ResumablePaginationMixin:
                 paginator.advance(resp)
 
     def get_new_paginator(self, context: Context | None) -> BaseAPIPaginator:
-        return super().get_new_paginator()
+        if not context:
+            super().get_new_paginator()
+        state_dict = self.get_context_state(context)
+        new_paginator = self.build_paginator_from_state(state_dict)
+        return new_paginator
+
+    @abc.abstractmethod
+    def build_paginator_from_state(self, state_dict: dict) -> BaseAPIPaginator:
+        pass
