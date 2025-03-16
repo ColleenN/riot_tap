@@ -36,11 +36,12 @@ class TFTRankedLadderMixin:
         context: types.Context | None,
     ) -> Iterable[types.Context | None]:
         if context["puuid"] in self.tap_state["player_match_history_state"]:
-            my_history_state = self.tap_state["player_match_history_state"][context["puuid"]]
+            my_history_state = self.tap_state["player_match_history_state"][
+                context["puuid"]
+            ]
             if my_history_state.get("matches_played", 0) == record["matches_played"]:
                 return []
         yield self.get_child_context(record=record, context=context)
-
 
     def get_child_context(
         self,

@@ -82,19 +82,27 @@ class TFTMatchListMixin(ResumablePaginationMixin):
 
         state_dict = self.get_context_state(context)
         if "last_used_query_params" in state_dict:
-            last_used_end_param = datetime.fromtimestamp(state_dict["last_used_query_params"]["endTime"])
+            last_used_end_param = datetime.fromtimestamp(
+                state_dict["last_used_query_params"]["endTime"]
+            )
             gap_period = self._tap.initial_timestamp - last_used_end_param
             if gap_period > timedelta(days=3):
                 return self._tap.initial_timestamp
             else:
                 return last_used_end_param
 
-            return max(state_dict["last_used_query_params"][""], self._tap.initial_timestamp)
+            return max(
+                state_dict["last_used_query_params"][""], self._tap.initial_timestamp
+            )
 
         if context["puuid"] in self.tap_state["player_match_history_state"]:
-            my_history_state = self.tap_state["player_match_history_state"][context["puuid"]]
+            my_history_state = self.tap_state["player_match_history_state"][
+                context["puuid"]
+            ]
             if "last_processed" in my_history_state:
-                return max(my_history_state["last_processed"], self._tap.initial_timestamp)
+                return max(
+                    my_history_state["last_processed"], self._tap.initial_timestamp
+                )
         return self._tap.initial_timestamp
 
     def get_end_timestamp(self):
@@ -121,7 +129,10 @@ class TFTMatchListMixin(ResumablePaginationMixin):
         record: types.Record,
         context: types.Context | None,
     ) -> Iterable[types.Context | None]:
-        if not record["matchId"] or record["matchId"] in self.tap_state["match_detail_set"]:
+        if (
+            not record["matchId"]
+            or record["matchId"] in self.tap_state["match_detail_set"]
+        ):
             return []
         yield self.get_child_context(record=record, context=context)
 
@@ -147,7 +158,9 @@ class TFTMatchListMixin(ResumablePaginationMixin):
     def _finalize_state(self, state: dict | None = None) -> None:
         match_history_state = self.tap_state["player_match_history_state"]
         new_player_state = {
-            "last_processed": datetime.fromtimestamp(state["last_used_query_params"]["endTime"])
+            "last_processed": datetime.fromtimestamp(
+                state["last_used_query_params"]["endTime"]
+            )
         }
         if "matches_played" in state["context"]:
             new_player_state["matches_played"] = state["context"]["matches_played"]
