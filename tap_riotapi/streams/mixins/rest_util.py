@@ -10,7 +10,6 @@ from singer_sdk import metrics
 class ResumablePaginationMixin:
 
     def request_records(self, context: Context | None) -> Iterable[dict]:
-
         """Request records from REST endpoint(s), returning response records.
 
         If pagination is detected, pages will be recursed automatically.

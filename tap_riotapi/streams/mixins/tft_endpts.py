@@ -100,10 +100,10 @@ class TFTMatchDetailMixin:
     ).to_dict()
 
     def _increment_stream_state(
-            self,
-            latest_record: types.Record,
-            *,
-            context: types.Context | None = None,
+        self,
+        latest_record: types.Record,
+        *,
+        context: types.Context | None = None,
     ):
         super()._increment_stream_state(latest_record, context=context)
         self.tap_state.setdefault("match_detail_set", set()).add(context["matchId"])

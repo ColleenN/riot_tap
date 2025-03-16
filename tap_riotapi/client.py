@@ -131,10 +131,7 @@ class RiotAPIStream(RESTStream):
             raise Exception(row)
 
         if self.replication_method == REPLICATION_INCREMENTAL:
-            return {
-                "data": row["data"],
-                "url_parms_used": row["url_params_used"]
-            }
+            return {"data": row["data"], "url_parms_used": row["url_params_used"]}
         return row["data"]
 
     def _request(

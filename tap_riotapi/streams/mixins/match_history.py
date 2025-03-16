@@ -28,13 +28,14 @@ class TFTMatchListMixin(ResumablePaginationMixin):
         ),
         th.Property("puuid", th.StringType, required=False, title="Player Identifier"),
         th.Property("endTime", th.DateTimeType),
-        th.Property("url_parms_used",
+        th.Property(
+            "url_parms_used",
             th.PropertiesList(
                 th.Property("count", th.NumberType),
                 th.Property("start", th.NumberType),
                 th.Property("startTime", th.NumberType),
                 th.Property("endTime", th.NumberType),
-            )
+            ),
         ),
     ).to_dict()
 
@@ -60,19 +61,28 @@ class TFTMatchListMixin(ResumablePaginationMixin):
 
     def build_paginator_from_state(self, state_partition: dict) -> BaseAPIPaginator:
         starting_index = 0
-        if state_partition and "last_used_query_params" in state_partition and "session_record_count":
-            partial_page_finished = state_partition["session_record_count"] % state_partition["last_used_query_params"]["count"]
-            starting_index = state_partition["last_used_query_params"]["start"] + partial_page_finished
-        return MatchHistoryPaginator(start_value=starting_index, page_size=self._page_size)
+        if (
+            state_partition
+            and "last_used_query_params" in state_partition
+            and "session_record_count"
+        ):
+            partial_page_finished = (
+                state_partition["session_record_count"]
+                % state_partition["last_used_query_params"]["count"]
+            )
+            starting_index = (
+                state_partition["last_used_query_params"]["start"]
+                + partial_page_finished
+            )
+        return MatchHistoryPaginator(
+            start_value=starting_index, page_size=self._page_size
+        )
 
     def get_start_timestamp(self):
         return self._tap.initial_timestamp
 
     def get_end_timestamp(self):
         return self._tap.end_timestamp
-
-    def parse_response(self, response: Response) -> Iterable[dict]:
-        yield from super().parse_response(response)
 
     def post_process(
         self,
@@ -84,16 +94,20 @@ class TFTMatchListMixin(ResumablePaginationMixin):
             return {
                 "matchId": row["data"],
                 "endTime": self.get_end_timestamp(),
-                "url_parms_used": {k:int(v[0]) for k,v in row["url_parms_used"].items()},
+                "url_parms_used": {
+                    k: int(v[0]) for k, v in row["url_parms_used"].items()
+                },
             }
         return None
 
     def generate_child_contexts(
-            self,
-            record: types.Record,
-            context: types.Context | None,
+        self,
+        record: types.Record,
+        context: types.Context | None,
     ) -> Iterable[types.Context | None]:
-        if record["matchId"] in self.tap_state.setdefault("match_detail_set", set()):
+        if not record["matchId"] or record["matchId"] in self.tap_state.setdefault(
+            "match_detail_set", set()
+        ):
             return []
         yield self.get_child_context(record=record, context=context)
 
@@ -105,10 +119,10 @@ class TFTMatchListMixin(ResumablePaginationMixin):
         return context | {"matchId": record["matchId"]}
 
     def _increment_stream_state(
-            self,
-            latest_record: types.Record,
-            *,
-            context: types.Context | None = None,
+        self,
+        latest_record: types.Record,
+        *,
+        context: types.Context | None = None,
     ):
         if latest_record and self.replication_method == REPLICATION_INCREMENTAL:
             state_dict = self.get_context_state(context)
@@ -116,15 +130,18 @@ class TFTMatchListMixin(ResumablePaginationMixin):
             state_dict["session_record_count"] += 1
             state_dict["last_used_query_params"] = latest_record["url_parms_used"]
 
-
     def _finalize_state(self, state: dict | None = None) -> None:
-        match_history_state = self.tap_state.setdefault("player_match_history_state", {})
+        match_history_state = self.tap_state.setdefault(
+            "player_match_history_state", {}
+        )
         new_player_state = {
             "last_processed": state["last_used_query_params"]["endTime"]
         }
         if "matches_played" in state["context"]:
             new_player_state["matches_played"] = state["context"]["matches_played"]
-        match_history_state.setdefault(state["context"]["puuid"], {}).update(new_player_state)
+        match_history_state.setdefault(state["context"]["puuid"], {}).update(
+            new_player_state
+        )
 
         context = state["context"]
         state.clear()
