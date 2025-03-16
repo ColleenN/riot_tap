@@ -6,8 +6,8 @@ from singer_sdk import typing as th  # JSON Schema typing helpers
 from singer_sdk.helpers import types
 
 from tap_riotapi.client import RiotAPIStream
-from tap_riotapi.streams.mixins import TFTMatchDetailMixin
-from tap_riotapi.streams.mixins.match_history_mixin import TFTMatchListMixin
+from tap_riotapi.streams.mixins.tft_endpts import TFTMatchDetailMixin
+from tap_riotapi.streams.mixins.match_history import TFTMatchListMixin
 from tap_riotapi.utils import flatten_config, REGION_ROUTING_MAP
 
 
