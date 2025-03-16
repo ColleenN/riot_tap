@@ -17,6 +17,25 @@ class TFTRankedLadderMixin:
         params.update({"queue": "RANKED_TFT"})
         return params
 
+    def post_process(
+        self,
+        row: dict,
+        context: types.Context | None = None,  # noqa: ARG002
+    ) -> dict | None:
+        initial_row = super().post_process(row, context)
+        return context | {
+            "summonerId": initial_row["summonerId"],
+            "puuid": initial_row["puuid"],
+            "lp": initial_row["leaguePoints"],
+            "matches_played": initial_row["wins"] + initial_row["losses"],
+        }
+
+    def get_child_context(
+        self,
+        record: types.Record,
+        context: types.Context | None,
+    ) -> types.Context | None:
+        return record | context if record else context
 
 class TFTMatchDetailMixin:
 

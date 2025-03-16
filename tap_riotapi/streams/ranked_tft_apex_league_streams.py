@@ -52,29 +52,9 @@ class ApexTierRankedLadderStream(TFTRankedLadderMixin, RiotAPIStream):
                 )
         return partitions
 
-    def get_child_context(
-        self,
-        record: types.Record,
-        context: types.Context | None,
-    ) -> types.Context | None:
-        return record | context if record else context
-
     @property
     def records_jsonpath(self):
         return "$.entries[*]"
-
-    def post_process(
-        self,
-        row: dict,
-        context: Context | None = None,  # noqa: ARG002
-    ) -> dict | None:
-        initial_row = super().post_process(row, context)
-        return context | {
-            "summonerId": initial_row["summonerId"],
-            "puuid": initial_row["puuid"],
-            "lp": initial_row["leaguePoints"],
-            "matches_played": initial_row["wins"] + initial_row["losses"],
-        }
 
 
 class ApexTierRankedLadderMatchHistoryStream(TFTMatchListMixin, RiotAPIStream):

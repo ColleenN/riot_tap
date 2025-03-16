@@ -41,7 +41,7 @@ class TFTMatchListMixin(ResumablePaginationMixin):
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
-        self._page_size = kwargs.get("page_size", 100)
+        self._page_size = kwargs.get("page_size", 500)
 
     @property
     def is_sorted(self) -> bool:
