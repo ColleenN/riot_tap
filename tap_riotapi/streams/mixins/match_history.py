@@ -1,3 +1,4 @@
+from datetime import datetime, timedelta
 from math import floor
 from typing import Iterable, Any
 
@@ -7,7 +8,6 @@ from requests import Response
 from singer_sdk import typing as th
 from singer_sdk.helpers import types
 from singer_sdk.pagination import BaseAPIPaginator, BaseOffsetPaginator
-from singer_sdk.sinks import record
 from singer_sdk.streams.core import REPLICATION_INCREMENTAL
 
 from tap_riotapi.streams.mixins.rest_util import ResumablePaginationMixin
@@ -55,7 +55,7 @@ class TFTMatchListMixin(ResumablePaginationMixin):
         return {
             "count": self._page_size,
             "start": next_page_token,
-            "startTime": floor(self.get_start_timestamp().timestamp()),
+            "startTime": floor(self.get_start_timestamp(context).timestamp()),
             "endTime": floor(self.get_end_timestamp().timestamp()),
         }
 
@@ -78,7 +78,23 @@ class TFTMatchListMixin(ResumablePaginationMixin):
             start_value=starting_index, page_size=self._page_size
         )
 
-    def get_start_timestamp(self):
+    def get_start_timestamp(self, context: types.Context):
+
+        state_dict = self.get_context_state(context)
+        if "last_used_query_params" in state_dict:
+            last_used_end_param = datetime.fromtimestamp(state_dict["last_used_query_params"]["endTime"])
+            gap_period = self._tap.initial_timestamp - last_used_end_param
+            if gap_period > timedelta(days=3):
+                return self._tap.initial_timestamp
+            else:
+                return last_used_end_param
+
+            return max(state_dict["last_used_query_params"][""], self._tap.initial_timestamp)
+
+        if context["puuid"] in self.tap_state["player_match_history_state"]:
+            my_history_state = self.tap_state["player_match_history_state"][context["puuid"]]
+            if "last_processed" in my_history_state:
+                return max(my_history_state["last_processed"], self._tap.initial_timestamp)
         return self._tap.initial_timestamp
 
     def get_end_timestamp(self):
@@ -92,7 +108,7 @@ class TFTMatchListMixin(ResumablePaginationMixin):
         row = super().post_process(row, context)
         if row:
             return {
-                "matchId": row["data"],
+                "matchId": row["data"] if row["data"] is not None else "",
                 "endTime": self.get_end_timestamp(),
                 "url_parms_used": {
                     k: int(v[0]) for k, v in row["url_parms_used"].items()
@@ -135,7 +151,7 @@ class TFTMatchListMixin(ResumablePaginationMixin):
             "player_match_history_state", {}
         )
         new_player_state = {
-            "last_processed": state["last_used_query_params"]["endTime"]
+            "last_processed": datetime.fromtimestamp(state["last_used_query_params"]["endTime"])
         }
         if "matches_played" in state["context"]:
             new_player_state["matches_played"] = state["context"]["matches_played"]
