@@ -1,4 +1,4 @@
-from typing import Any
+from typing import Any, Iterable
 
 from singer_sdk import typing as th  # JSON Schema typing helpers
 from singer_sdk.helpers import types
@@ -30,12 +30,25 @@ class TFTRankedLadderMixin:
             "matches_played": initial_row["wins"] + initial_row["losses"],
         }
 
+    def generate_child_contexts(
+        self,
+        record: types.Record,
+        context: types.Context | None,
+    ) -> Iterable[types.Context | None]:
+        if context["puuid"] in self.tap_state["player_match_history_state"]:
+            my_history_state = self.tap_state["player_match_history_state"][context["puuid"]]
+            if my_history_state.get("matches_played", 0) == record["matches_played"]:
+                return []
+        yield self.get_child_context(record=record, context=context)
+
+
     def get_child_context(
         self,
         record: types.Record,
         context: types.Context | None,
     ) -> types.Context | None:
         return record | context if record else context
+
 
 class TFTMatchDetailMixin:
 
