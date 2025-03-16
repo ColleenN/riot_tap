@@ -121,9 +121,7 @@ class TFTMatchListMixin(ResumablePaginationMixin):
         record: types.Record,
         context: types.Context | None,
     ) -> Iterable[types.Context | None]:
-        if not record["matchId"] or record["matchId"] in self.tap_state.setdefault(
-            "match_detail_set", set()
-        ):
+        if not record["matchId"] or record["matchId"] in self.tap_state["match_detail_set"]:
             return []
         yield self.get_child_context(record=record, context=context)
 
