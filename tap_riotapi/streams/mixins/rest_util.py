@@ -57,6 +57,7 @@ class ResumablePaginationMixin:
             super().get_new_paginator()
         state_dict = self.get_context_state(context)
         new_paginator = self.build_paginator_from_state(state_dict)
+        state_dict["current_paginator"] = new_paginator
         return new_paginator
 
     @abc.abstractmethod

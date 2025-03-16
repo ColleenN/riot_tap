@@ -40,8 +40,7 @@ class TFTMatchListMixin(ResumablePaginationMixin):
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
-        self._page_size = kwargs.get("page_size", 20)
-        self._state_partitioning_keys = {"puuid"}
+        self._page_size = kwargs.get("page_size", 100)
 
     @property
     def is_sorted(self) -> bool:
@@ -85,7 +84,7 @@ class TFTMatchListMixin(ResumablePaginationMixin):
             return {
                 "matchId": row["data"],
                 "endTime": self.get_end_timestamp(),
-                "url_parms_used": row["url_parms_used"]
+                "url_parms_used": {k:int(v[0]) for k,v in row["url_parms_used"].items()},
             }
         return None
 
@@ -111,13 +110,27 @@ class TFTMatchListMixin(ResumablePaginationMixin):
             *,
             context: types.Context | None = None,
     ):
-        state_dict = self.get_context_state(context)
         if latest_record and self.replication_method == REPLICATION_INCREMENTAL:
+            state_dict = self.get_context_state(context)
             state_dict.setdefault("session_record_count", 0)
             state_dict["session_record_count"] += 1
             state_dict["last_used_query_params"] = latest_record["url_parms_used"]
 
 
+    def _finalize_state(self, state: dict | None = None) -> None:
+        match_history_state = self.tap_state.setdefault("player_match_history_state", {})
+        new_player_state = {
+            "last_processed": state["last_used_query_params"]["endTime"]
+        }
+        if "matches_played" in state["context"]:
+            new_player_state["matches_played"] = state["context"]["matches_played"]
+        match_history_state.setdefault(state["context"]["puuid"], {}).update(new_player_state)
+
+        context = state["context"]
+        state.clear()
+        state["context"] = context
+
+        super()._finalize_state(state)
 
 
 class MatchHistoryPaginator(BaseOffsetPaginator):
