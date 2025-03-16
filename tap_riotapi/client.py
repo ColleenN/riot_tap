@@ -100,7 +100,7 @@ class RiotAPIStream(RESTStream):
         }
 
         for record in data_iter:
-            yield {"data": record}
+            yield {"data": record, "url_params_used": url_params}
 
     def post_process(
         self,
