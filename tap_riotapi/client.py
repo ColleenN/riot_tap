@@ -4,12 +4,14 @@ from __future__ import annotations
 from datetime import datetime
 from dateutil import parser
 from time import sleep
+from urllib.parse import urlparse, parse_qs
 from typing import TYPE_CHECKING
 
 from backoff import expo
 from singer_sdk.authenticators import APIKeyAuthenticator
 from singer_sdk.helpers._state import write_starting_replication_value
 from singer_sdk.streams import RESTStream
+from singer_sdk.streams.core import REPLICATION_INCREMENTAL
 
 from tap_riotapi.rate_limiting import _RateLimitRecord
 
@@ -83,6 +85,7 @@ class RiotAPIStream(RESTStream):
             rate_cap=response.headers["X-Method-Rate-Limit"],
             rate_count=response.headers["X-Method-Rate-Limit-Count"],
         )
+        url_params = parse_qs(urlparse(response.request.url).query)
 
         data_iter = iter(super().parse_response(response))
         try:
@@ -93,6 +96,7 @@ class RiotAPIStream(RESTStream):
             "data": first_record,
             "method_rate_limit": method_rate_limit,
             "app_rate_limit": app_rate_limit,
+            "url_params_used": url_params,
         }
 
         for record in data_iter:
@@ -125,6 +129,12 @@ class RiotAPIStream(RESTStream):
             )
         if "data" not in row.keys():
             raise Exception(row)
+
+        if self.replication_method == REPLICATION_INCREMENTAL:
+            return {
+                "data": row["data"],
+                "url_parms_used": row["url_params_used"]
+            }
         return row["data"]
 
     def _request(
