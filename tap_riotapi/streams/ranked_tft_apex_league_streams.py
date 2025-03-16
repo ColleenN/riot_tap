@@ -10,10 +10,10 @@ from singer_sdk.helpers.types import Context
 from tap_riotapi.client import RiotAPIStream
 from tap_riotapi.utils import APEX_TIERS, REGION_ROUTING_MAP, flatten_config
 from tap_riotapi.streams.mixins import (
-    TFTMatchListMixin,
     TFTMatchDetailMixin,
     TFTRankedLadderMixin,
 )
+from tap_riotapi.streams.match_history_mixin import TFTMatchListMixin
 
 
 class ApexTierRankedLadderStream(TFTRankedLadderMixin, RiotAPIStream):

@@ -9,10 +9,10 @@ from singer_sdk.helpers import types
 
 from tap_riotapi.client import RiotAPIStream
 from tap_riotapi.streams.mixins import (
-    TFTMatchListMixin,
     TFTMatchDetailMixin,
     TFTRankedLadderMixin,
 )
+from tap_riotapi.streams.match_history_mixin import TFTMatchListMixin
 from tap_riotapi.utils import (
     ROMAN_NUMERALS,
     NON_APEX_TIERS,
