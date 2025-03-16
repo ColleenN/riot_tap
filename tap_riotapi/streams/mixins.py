@@ -24,6 +24,8 @@ class TFTRankedLadderMixin:
 
 class TFTMatchListMixin:
 
+    replication_key = "endTime"
+
     path = "/tft/match/v1/matches/by-puuid/{puuid}/ids"
     schema = th.PropertiesList(
         th.Property(
@@ -95,6 +97,14 @@ class TFTMatchListMixin:
     @property
     def is_sorted(self) -> bool:
         return True
+
+    def _increment_stream_state(
+            self,
+            latest_record: types.Record,
+            *,
+            context: types.Context | None = None,
+    ):
+        super()._increment_stream_state(latest_record, context=context)
 
 
 class MatchHistoryPaginator(BaseOffsetPaginator):

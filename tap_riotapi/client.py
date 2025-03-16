@@ -1,14 +1,14 @@
 """REST client handling, including RiotAPIStream base class."""
 
 from __future__ import annotations
-
+from datetime import datetime
 from dateutil import parser
 from time import sleep
 from typing import TYPE_CHECKING
 
 from backoff import expo
 from singer_sdk.authenticators import APIKeyAuthenticator
-from singer_sdk.pagination import BaseAPIPaginator  # noqa: TC002
+from singer_sdk.helpers._state import write_starting_replication_value
 from singer_sdk.streams import RESTStream
 
 from tap_riotapi.rate_limiting import _RateLimitRecord
@@ -156,3 +156,31 @@ class RiotAPIStream(RESTStream):
 
     def backoff_wait_generator(self) -> Generator[float, None, None]:
         return self.backoff_runtime(value=generate_wait)
+
+    def _write_starting_replication_value(self, context: Context | None) -> None:
+        """Write the starting replication value, if available.
+
+        Args:
+            context: Stream partition or context dictionary.
+        """
+        value = None
+        state = self.get_context_state(context)
+
+        if self.replication_key:
+            replication_key_value = state.get("replication_key_value")
+            if replication_key_value and self.replication_key == state.get(
+                "replication_key",
+            ):
+                value = replication_key_value
+
+            # Use start_date if it is more recent than the replication_key state
+            start_date_value: datetime | None = self._tap.initial_timestamp
+            if start_date_value:
+                if not value:
+                    value = start_date_value
+                else:
+                    value = max(start_date_value, value)
+
+            self.logger.info("Starting incremental sync with bookmark value: %s", value)
+
+        write_starting_replication_value(state, value)
