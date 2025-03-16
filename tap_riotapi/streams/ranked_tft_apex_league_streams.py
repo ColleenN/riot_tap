@@ -1,8 +1,5 @@
 from __future__ import annotations
 
-from typing import Iterable
-
-import requests
 from singer_sdk import typing as th  # JSON Schema typing helpers
 from singer_sdk.helpers import types
 from singer_sdk.helpers.types import Context
@@ -13,7 +10,7 @@ from tap_riotapi.streams.mixins import (
     TFTMatchDetailMixin,
     TFTRankedLadderMixin,
 )
-from tap_riotapi.streams.match_history_mixin import TFTMatchListMixin
+from tap_riotapi.streams.mixins.match_history_mixin import TFTMatchListMixin
 
 
 class ApexTierRankedLadderStream(TFTRankedLadderMixin, RiotAPIStream):

@@ -12,7 +12,7 @@ from tap_riotapi.streams.mixins import (
     TFTMatchDetailMixin,
     TFTRankedLadderMixin,
 )
-from tap_riotapi.streams.match_history_mixin import TFTMatchListMixin
+from tap_riotapi.streams.mixins.match_history_mixin import TFTMatchListMixin
 from tap_riotapi.utils import (
     ROMAN_NUMERALS,
     NON_APEX_TIERS,

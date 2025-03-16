@@ -25,7 +25,7 @@ class TFTMatchListMixin:
         ),
         th.Property("puuid", th.StringType, required=False, title="Player Identifier"),
         th.Property("endTime", th.DateTimeType),
-        th.Property("query_params_used",
+        th.Property("url_parms_used",
             th.PropertiesList(
                 th.Property("count", th.NumberType),
                 th.Property("start", th.NumberType),
@@ -73,16 +73,14 @@ class TFTMatchListMixin:
         row: dict,
         context: types.Context | None = None,  # noqa: ARG002
     ) -> dict | None:
-        data = super().post_process(row, context)
-        if data:
+        row = super().post_process(row, context)
+        if row:
             return {
-                "matchId": data,
-                "endTime": self.get_end_timestamp()
-
+                "matchId": row["data"],
+                "endTime": self.get_end_timestamp(),
+                "url_parms_used": row["url_parms_used"]
             }
         return None
-
-
 
     def generate_child_contexts(
             self,
@@ -100,22 +98,16 @@ class TFTMatchListMixin:
     ) -> types.Context | None:
         return context | {"matchId": record["matchId"]}
 
-
-
     def _increment_stream_state(
             self,
             latest_record: types.Record,
             *,
             context: types.Context | None = None,
     ):
-
         state_dict = self.get_context_state(context)
         if latest_record and self.replication_method == REPLICATION_INCREMENTAL:
-            state_dict["last_used_query_params"] = self.get_url_params(context, next_page_token=None)
-
-
+            state_dict["last_used_query_params"] = latest_record["url_parms_used"]
         super()._increment_stream_state(latest_record, context=context)
-
 
 class MatchHistoryPaginator(BaseOffsetPaginator):
 
