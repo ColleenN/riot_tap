@@ -21,8 +21,14 @@ class TapRiotAPI(Tap):
 
         super().__init__(**kwargs)
 
-        if not "rate_limits" in self.state.keys():
+        if not "rate_limits" in self.state:
             self.state["rate_limits"] = RateLimitState()
+
+        if not "player_match_history_state" in self.state:
+            self.state["player_match_history_state"] = {}
+
+        if not "match_detail_set" in self.state:
+            self.state["match_detail_set"] = set()
 
         self.initial_timestamp, self.end_timestamp = self._parse_time_range_config(
             kwargs["config"].get("start_date", None),
