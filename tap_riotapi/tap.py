@@ -31,8 +31,8 @@ class TapRiotAPI(Tap):
             self.state["match_detail_set"] = set()
 
         self.initial_timestamp, self.end_timestamp = self._parse_time_range_config(
-            kwargs["config"].get("start_date", None),
-            kwargs["config"].get("end_date", None),
+            self._config.get("start_date", None),
+            self._config.get("end_date", None),
         )
 
     @classmethod
