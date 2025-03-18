@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+import typing as t
 from datetime import datetime, timedelta, timezone
 
 from singer_sdk.exceptions import ConfigValidationError
@@ -21,19 +22,21 @@ class TapRiotAPI(Tap):
 
         super().__init__(**kwargs)
 
-        if not "rate_limits" in self.state:
-            self.state["rate_limits"] = RateLimitState()
-
-        if not "player_match_history_state" in self.state:
-            self.state["player_match_history_state"] = {}
-
-        if not "match_detail_set" in self.state:
-            self.state["match_detail_set"] = set()
-
         self.initial_timestamp, self.end_timestamp = self._parse_time_range_config(
             self.config.get("start_date", None),
             self.config.get("end_date", None),
         )
+
+    def load_state(self, state: dict[str, t.Any]) -> None:
+        super().load_state(state)
+
+        if not "rate_limits" in self.state:
+            self.state["rate_limits"] = RateLimitState()
+
+        self.state["player_match_history_state"] = state.get(
+            "player_match_history_state", {}
+        )
+        self.state["match_detail_set"] = state.get("match_detail_set", set())
 
     @classmethod
     def _parse_time_range_config(cls, start_config: str | None, end_config: str | None):
