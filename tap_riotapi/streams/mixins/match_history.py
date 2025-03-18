@@ -29,7 +29,7 @@ class TFTMatchListMixin(ResumablePaginationMixin):
         th.Property("puuid", th.StringType, required=False, title="Player Identifier"),
         th.Property("endTime", th.DateTimeType),
         th.Property(
-            "url_parms_used",
+            "url_params_used",
             th.PropertiesList(
                 th.Property("count", th.NumberType),
                 th.Property("start", th.NumberType),
@@ -118,8 +118,8 @@ class TFTMatchListMixin(ResumablePaginationMixin):
             return {
                 "matchId": row["data"] if row["data"] is not None else "",
                 "endTime": self.get_end_timestamp(),
-                "url_parms_used": {
-                    k: int(v[0]) for k, v in row["url_parms_used"].items()
+                "url_params_used": {
+                    k: int(v[0]) for k, v in row["url_params_used"].items()
                 },
             }
         return None
@@ -153,7 +153,7 @@ class TFTMatchListMixin(ResumablePaginationMixin):
             state_dict = self.get_context_state(context)
             state_dict.setdefault("session_record_count", 0)
             state_dict["session_record_count"] += 1
-            state_dict["last_used_query_params"] = latest_record["url_parms_used"]
+            state_dict["last_used_query_params"] = latest_record["url_params_used"]
 
     def _finalize_state(self, state: dict | None = None) -> None:
         match_history_state = self.tap_state["player_match_history_state"]
