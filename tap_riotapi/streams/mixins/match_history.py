@@ -157,11 +157,13 @@ class TFTMatchListMixin(ResumablePaginationMixin):
 
     def _finalize_state(self, state: dict | None = None) -> None:
         match_history_state = self.tap_state["player_match_history_state"]
-        new_player_state = {
-            "last_processed": datetime.fromtimestamp(
+        new_player_state = {}
+
+        if "last_used_query_params" in state:
+            new_player_state["last_processed"] = datetime.fromtimestamp(
                 state["last_used_query_params"]["endTime"]
             )
-        }
+
         if "matches_played" in state["context"]:
             new_player_state["matches_played"] = state["context"]["matches_played"]
         match_history_state.setdefault(state["context"]["puuid"], {}).update(
