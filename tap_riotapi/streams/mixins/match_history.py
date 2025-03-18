@@ -181,7 +181,6 @@ class TFTMatchListMixin(ResumablePaginationMixin):
             super()._write_record_message(record)
 
 
-
 class MatchHistoryPaginator(BaseOffsetPaginator):
 
     def has_more(self, response: Response) -> bool:
