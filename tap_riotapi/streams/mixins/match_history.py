@@ -176,6 +176,11 @@ class TFTMatchListMixin(ResumablePaginationMixin):
 
         super()._finalize_state(state)
 
+    def _write_record_message(self, record: types.Record) -> None:
+        if record["data"]:
+            super()._write_record_message(record)
+
+
 
 class MatchHistoryPaginator(BaseOffsetPaginator):
 
