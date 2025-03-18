@@ -91,10 +91,6 @@ class TFTMatchListMixin(ResumablePaginationMixin):
             else:
                 return last_used_end_param
 
-            return max(
-                state_dict["last_used_query_params"][""], self._tap.initial_timestamp
-            )
-
         if context["puuid"] in self.tap_state["player_match_history_state"]:
             my_history_state = self.tap_state["player_match_history_state"][
                 context["puuid"]
@@ -177,7 +173,7 @@ class TFTMatchListMixin(ResumablePaginationMixin):
         super()._finalize_state(state)
 
     def _write_record_message(self, record: types.Record) -> None:
-        if record["data"]:
+        if record["matchId"]:
             super()._write_record_message(record)
 
 
