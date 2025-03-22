@@ -35,9 +35,9 @@ class TFTRankedLadderMixin:
         record: types.Record,
         context: types.Context | None,
     ) -> Iterable[types.Context | None]:
-        if context["puuid"] in self.tap_state["player_match_history_state"]:
+        if record["puuid"] in self.tap_state["player_match_history_state"]:
             my_history_state = self.tap_state["player_match_history_state"][
-                context["puuid"]
+                record["puuid"]
             ]
             if my_history_state.get("matches_played", 0) == record["matches_played"]:
                 return []
