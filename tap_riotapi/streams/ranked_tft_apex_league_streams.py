@@ -59,11 +59,11 @@ class ApexTierRankedLadderStream(TFTRankedLadderMixin, RiotAPIStream):
 
 class ApexTierRankedLadderMatchHistoryStream(TFTMatchListMixin, RiotAPIStream):
 
-    name = "ranked_ladder_match_history"
+    name = "apex_ranked_ladder_match_history"
     parent_stream_type = ApexTierRankedLadderStream
 
 
 class ApexTierRankedLadderMatchDetailStream(TFTMatchDetailMixin, RiotAPIStream):
 
-    name = "ranked_ladder_match_detail"
+    name = "apex_ranked_ladder_match_detail"
     parent_stream_type = ApexTierRankedLadderMatchHistoryStream

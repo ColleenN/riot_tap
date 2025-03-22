@@ -97,11 +97,11 @@ class NormalTierRankedLadderStream(TFTRankedLadderMixin, RiotAPIStream):
 
 class NormalTierRankedLadderMatchHistoryStream(TFTMatchListMixin, RiotAPIStream):
 
-    name = "ranked_ladder_match_history"
+    name = "normal_ranked_ladder_match_history"
     parent_stream_type = NormalTierRankedLadderStream
 
 
 class NormalTierRankedLadderMatchDetailStream(TFTMatchDetailMixin, RiotAPIStream):
 
-    name = "ranked_ladder_match_detail"
+    name = "normal_ranked_ladder_match_detail"
     parent_stream_type = NormalTierRankedLadderMatchHistoryStream
