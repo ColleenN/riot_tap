@@ -1,0 +1,27 @@
+name: tap-riotapi
+namespace: tap_riotapi
+pip_url: git+https://github.com/ColleenN/riot_tap
+repo: https://github.com/ColleenN/riot_tap
+capabilities:
+- state
+- catalog
+- discover
+- about
+- stream-maps
+settings:
+- name: auth_token
+  label: Token
+  description: The token to use for authentication
+  kind: password
+- name: following
+  label: Follow
+  description: Items we want to sync match data for
+  kind: object
+- name: start_date
+  label: Earliest match data to pull
+  kind: date_iso8601
+- name: end_date
+  label: Latest match data to pull
+  kind: date_iso8601
+settings_group_validation:
+- [auth_token]
