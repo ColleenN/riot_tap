@@ -5,7 +5,7 @@ plugins:
   extractors:
   - name: "tap-riotapi"
     namespace: "tap_riotapi"
-    pip_url: -e .
+    pip_url: git+https://github.com/ColleenN/riot_tap
     capabilities:
     - state
     - catalog
