@@ -58,7 +58,7 @@ class TapRiotAPI(Tap):
                 end_datetime = end_datetime.replace(tzinfo=timezone.utc)
 
         if end_datetime < init_datetime:
-            end_datetime = init_datetime = timedelta(hours=1)
+            end_datetime = init_datetime + timedelta(hours=1)
 
         return init_datetime, end_datetime
 
