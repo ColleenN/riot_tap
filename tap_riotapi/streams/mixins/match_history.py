@@ -96,9 +96,17 @@ class TFTMatchListMixin(ResumablePaginationMixin):
                 context["puuid"]
             ]
             if "last_processed" in my_history_state:
-                return max(
-                    my_history_state["last_processed"], self._tap.initial_timestamp
-                )
+                try:
+                    return max(
+                        my_history_state["last_processed"], self._tap.initial_timestamp
+                    )
+                except TypeError as err:
+                    err.add_note(f"Last processed, value: {my_history_state['last_processed']}")
+                    err.add_note(
+                        f"Last processed, type: {type(my_history_state['last_processed'])}")
+                    err.add_note(f"Initial timestamp, value: {self._tap.initial_timestamp}")
+                    err.add_note(f"Initial timestamp, type: {type(self._tap.initial_timestamp)}")
+                    raise
         return self._tap.initial_timestamp
 
     def get_end_timestamp(self):
