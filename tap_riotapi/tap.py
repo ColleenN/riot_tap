@@ -74,7 +74,12 @@ class TapRiotAPI(Tap):
             if "last_processed" in item:
                 item["last_processed"] = datetime.fromisoformat(item["last_processed"])
 
-        self.state["match_detail_set"] = set(state.get("match_detail_set", set()))
+        raw_match_detail = state.get("match_detail_set")
+        if raw_match_detail:
+            self.state["match_detail_set"] = set(json.loads(raw_match_detail))
+        else:
+            self.state["match_detail_set"] = set()
+
 
     @classmethod
     def _parse_time_range_config(cls, start_config: str | None, end_config: str | None):
