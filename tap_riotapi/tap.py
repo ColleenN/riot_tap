@@ -36,6 +36,10 @@ class TapRiotAPI(Tap):
         self.state["player_match_history_state"] = state.get(
             "player_match_history_state", {}
         )
+        for item in self.state["player_match_history_state"].values():
+            if "last_processed" in item:
+                item["last_processed"] = datetime.fromisoformat(item["last_processed"])
+
         self.state["match_detail_set"] = state.get("match_detail_set", set())
 
     @classmethod

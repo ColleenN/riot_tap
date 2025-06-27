@@ -1,4 +1,4 @@
-from datetime import datetime, timedelta
+from datetime import datetime, timedelta, timezone
 from math import floor
 from typing import Iterable, Any
 
@@ -97,7 +97,7 @@ class TFTMatchListMixin(ResumablePaginationMixin):
             ]
             if "last_processed" in my_history_state:
                 return max(
-                    datetime.fromisoformat(my_history_state["last_processed"]),
+                    my_history_state["last_processed"],
                     self._tap.initial_timestamp
                 )
         return self._tap.initial_timestamp
@@ -158,7 +158,8 @@ class TFTMatchListMixin(ResumablePaginationMixin):
 
         if "last_used_query_params" in state:
             new_player_state["last_processed"] = datetime.fromtimestamp(
-                state["last_used_query_params"]["endTime"]
+                state["last_used_query_params"]["endTime"],
+                tz=timezone.utc
             )
 
         if "matches_played" in state["context"]:
