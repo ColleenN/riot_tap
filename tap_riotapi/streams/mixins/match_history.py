@@ -97,7 +97,7 @@ class TFTMatchListMixin(ResumablePaginationMixin):
             ]
             if "last_processed" in my_history_state:
                 return max(
-                    datetime.fromtimestamp(my_history_state["last_processed"]),
+                    datetime.fromisoformat(my_history_state["last_processed"]),
                     self._tap.initial_timestamp
                 )
         return self._tap.initial_timestamp
