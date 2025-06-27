@@ -2,9 +2,11 @@
 
 from __future__ import annotations
 
+import json
 import typing as t
 from datetime import datetime, timedelta, timezone
 
+from singer_sdk._singerlib import Message
 from singer_sdk.exceptions import ConfigValidationError
 from singer_sdk import Tap
 from singer_sdk import typing as th  # JSON schema typing helpers
@@ -13,6 +15,22 @@ from tap_riotapi import streams
 from tap_riotapi.client import RiotAPIStream
 from tap_riotapi.rate_limiting import RateLimitState
 from tap_riotapi.utils import *
+
+
+def default_encoding(obj: t.Any) -> str:  # noqa: ANN401
+    """Default JSON encoder.
+
+    Args:
+        obj: The object to encode.
+
+    Returns:
+        The encoded object.
+    """
+    if isinstance(obj, datetime.datetime):
+        return obj.isoformat(sep="T")
+    if isinstance(obj, set):
+        return str(list(obj))
+    return str(obj)
 
 
 class TapRiotAPI(Tap):
@@ -25,6 +43,22 @@ class TapRiotAPI(Tap):
         self.initial_timestamp, self.end_timestamp = self._parse_time_range_config(
             self.config.get("start_date", None),
             self.config.get("end_date", None),
+        )
+
+    def serialize_message(self, message: Message) -> str:  # noqa: PLR6301
+        """Serialize a dictionary into a line of json.
+
+        Args:
+            message: A Singer message object.
+
+        Returns:
+            A string of serialized json.
+        """
+        return json.dumps(
+            message.to_dict(),
+            use_decimal=True,
+            default=default_encoding,
+            separators=(",", ":")
         )
 
     def load_state(self, state: dict[str, t.Any]) -> None:
@@ -40,7 +74,7 @@ class TapRiotAPI(Tap):
             if "last_processed" in item:
                 item["last_processed"] = datetime.fromisoformat(item["last_processed"])
 
-        self.state["match_detail_set"] = state.get("match_detail_set", set())
+        self.state["match_detail_set"] = set(state.get("match_detail_set", set()))
 
     @classmethod
     def _parse_time_range_config(cls, start_config: str | None, end_config: str | None):
