@@ -26,10 +26,14 @@ def default_encoding(obj: t.Any) -> str:  # noqa: ANN401
     Returns:
         The encoded object.
     """
-    if isinstance(obj, datetime.datetime):
+    if isinstance(obj, datetime):
         return obj.isoformat(sep="T")
     if isinstance(obj, set):
-        return str(list(obj))
+        return json.dumps(
+            list(obj),
+            default=default_encoding,
+            separators=(",", ":")
+        )
     return str(obj)
 
 
@@ -56,7 +60,6 @@ class TapRiotAPI(Tap):
         """
         return json.dumps(
             message.to_dict(),
-            use_decimal=True,
             default=default_encoding,
             separators=(",", ":")
         )
