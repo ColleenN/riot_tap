@@ -1,5 +1,5 @@
 """RiotAPI tap class."""
-
+import sys
 from __future__ import annotations
 
 import json
@@ -29,11 +29,12 @@ def default_encoding(obj: t.Any) -> str:  # noqa: ANN401
     if isinstance(obj, datetime):
         return obj.isoformat(sep="T")
     if isinstance(obj, set):
-        return json.dumps(
+        ret_val = json.dumps(
             list(obj),
             default=default_encoding,
             separators=(",", ":")
         )
+        return ret_val
     return str(obj)
 
 
@@ -58,11 +59,12 @@ class TapRiotAPI(Tap):
         Returns:
             A string of serialized json.
         """
-        return json.dumps(
+        value = json.dumps(
             message.to_dict(),
             default=default_encoding,
             separators=(",", ":")
         )
+        return value
 
     def load_state(self, state: dict[str, t.Any]) -> None:
         super().load_state(state)
@@ -151,6 +153,10 @@ class TapRiotAPI(Tap):
             raise ConfigValidationError("No streams configured!")
 
         return [stream(tap=self) for stream in stream_types]
+
+    def write_message(self, message: Message) -> None:
+        sys.stdout.write(message.type)
+
 
 
 if __name__ == "__main__":
