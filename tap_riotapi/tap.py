@@ -157,9 +157,9 @@ class TapRiotAPI(Tap):
 
     def write_message(self, message: Message) -> None:
         if message.type == "STATE":
-            state_dict = message.to_dict()
+            state_dict = message.to_dict()['value']
             serialized = json.dumps(
-                state_dict['match_detail_set'],
+                state_dict.get('match_detail_set', "EMPTY"),
                 default=default_encoding,
                 separators=(",", ":")
             )
