@@ -159,7 +159,7 @@ class TapRiotAPI(Tap):
         sys.stdout.write("\n")
         if message.type == "STATE":
             sys.stdout.write("\n")
-            sys.stdout.write(self.__class__.__mro__)
+            sys.stdout.write(f"{pformat(self.__class__.__mro__, width=120)}")
             sys.stdout.write("\n")
         sys.stdout.write("\n")
 
