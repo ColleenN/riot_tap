@@ -155,6 +155,10 @@ class TapRiotAPI(Tap):
 
         return [stream(tap=self) for stream in stream_types]
 
+    def write_message(self, message: Message) -> None:
+        sys.stdout.write("\n")
+        super().write_message(message)
+        sys.stdout.write("\n")
 
 
 if __name__ == "__main__":
