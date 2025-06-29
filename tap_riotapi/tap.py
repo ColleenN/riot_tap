@@ -155,7 +155,7 @@ class TapRiotAPI(Tap):
         return [stream(tap=self) for stream in stream_types]
 
     def write_message(self, message: Message) -> None:
-        sys.stdout.write(message.type)
+        sys.stdout.write(f"{message.to_dict()}\n")
 
 
 
