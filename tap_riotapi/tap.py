@@ -159,9 +159,8 @@ class TapRiotAPI(Tap):
         sys.stdout.write("\n")
         if message.type == "STATE":
             sys.stdout.write("\n")
-            sys.stdout.write(self.serialize_message(message))
+            sys.stdout.write(self.__class__.__mro__)
             sys.stdout.write("\n")
-            super().write_message(message)
         sys.stdout.write("\n")
 
 
