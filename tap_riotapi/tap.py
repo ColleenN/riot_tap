@@ -155,16 +155,6 @@ class TapRiotAPI(Tap):
 
         return [stream(tap=self) for stream in stream_types]
 
-    def write_message(self, message: Message) -> None:
-        if message.type == "STATE":
-            state_dict = message.to_dict()['value']
-            serialized = json.dumps(
-                state_dict,
-                default=default_encoding,
-                separators=(",", ":")
-            )
-            sys.stdout.write(f"\n{pformat(serialized, width=200)}\n\n")
-
 
 
 if __name__ == "__main__":
