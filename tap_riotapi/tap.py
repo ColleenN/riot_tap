@@ -159,11 +159,11 @@ class TapRiotAPI(Tap):
         if message.type == "STATE":
             state_dict = message.to_dict()['value']
             serialized = json.dumps(
-                state_dict.get('match_detail_set', "EMPTY"),
+                state_dict,
                 default=default_encoding,
                 separators=(",", ":")
             )
-            sys.stdout.write(f"\n{pformat(serialized, width=120)}\n\n")
+            sys.stdout.write(f"\n{pformat(serialized, width=200)}\n\n")
 
 
 
