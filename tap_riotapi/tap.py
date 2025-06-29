@@ -1,6 +1,7 @@
 """RiotAPI tap class."""
 from __future__ import annotations
 import sys
+from pprint import pformat
 
 import json
 import typing as t
@@ -155,7 +156,7 @@ class TapRiotAPI(Tap):
         return [stream(tap=self) for stream in stream_types]
 
     def write_message(self, message: Message) -> None:
-        sys.stdout.write(f"{message.to_dict()}\n")
+        sys.stdout.write(f"\n{pformat(message.to_dict(), width=120)}\n\n")
 
 
 
