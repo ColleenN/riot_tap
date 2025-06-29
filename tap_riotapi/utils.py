@@ -1,3 +1,10 @@
+import json
+from datetime import datetime
+from singer_sdk._singerlib import Message
+from singer_sdk.io_base import SingerWriter
+import typing as t
+
+
 def flatten_config(config_dict: dict[str, dict[str, list]]) -> tuple:
 
     players = []
@@ -38,3 +45,43 @@ REGION_ROUTING_MAP = {
     "tr1": "europe",
     "ru": "europe",
 }
+
+
+def default_encoding(obj: t.Any) -> str:  # noqa: ANN401
+    """Default JSON encoder.
+
+    Args:
+        obj: The object to encode.
+
+    Returns:
+        The encoded object.
+    """
+    if isinstance(obj, datetime):
+        return obj.isoformat(sep="T")
+    if isinstance(obj, set):
+        return json.dumps(
+            list(obj),
+            default=default_encoding,
+            separators=(",", ":")
+        )
+    return str(obj)
+
+
+class MessageWriter(SingerWriter):
+
+
+    def serialize_message(self, message: Message) -> str:  # noqa: PLR6301
+        """Serialize a dictionary into a line of json.
+
+        Args:
+            message: A Singer message object.
+
+        Returns:
+            A string of serialized json.
+        """
+        value = json.dumps(
+            message.to_dict(),
+            default=default_encoding,
+            separators=(",", ":")
+        )
+        return value

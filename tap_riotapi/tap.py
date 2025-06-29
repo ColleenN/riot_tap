@@ -1,13 +1,8 @@
 """RiotAPI tap class."""
 from __future__ import annotations
-import sys
-from pprint import pformat
 
-import json
-import typing as t
-from datetime import datetime, timedelta, timezone
+from datetime import timedelta, timezone
 
-from singer_sdk._singerlib import Message
 from singer_sdk.exceptions import ConfigValidationError
 from singer_sdk import Tap
 from singer_sdk import typing as th  # JSON schema typing helpers
@@ -18,29 +13,10 @@ from tap_riotapi.rate_limiting import RateLimitState
 from tap_riotapi.utils import *
 
 
-def default_encoding(obj: t.Any) -> str:  # noqa: ANN401
-    """Default JSON encoder.
-
-    Args:
-        obj: The object to encode.
-
-    Returns:
-        The encoded object.
-    """
-    if isinstance(obj, datetime):
-        return obj.isoformat(sep="T")
-    if isinstance(obj, set):
-        ret_val = json.dumps(
-            list(obj),
-            default=default_encoding,
-            separators=(",", ":")
-        )
-        return ret_val
-    return str(obj)
-
-
 class TapRiotAPI(Tap):
     """RiotAPI tap class."""
+
+    message_writer_class = MessageWriter
 
     def __init__(self, **kwargs) -> None:
 
@@ -50,22 +26,6 @@ class TapRiotAPI(Tap):
             self.config.get("start_date", None),
             self.config.get("end_date", None),
         )
-
-    def serialize_message(self, message: Message) -> str:  # noqa: PLR6301
-        """Serialize a dictionary into a line of json.
-
-        Args:
-            message: A Singer message object.
-
-        Returns:
-            A string of serialized json.
-        """
-        value = json.dumps(
-            message.to_dict(),
-            default=default_encoding,
-            separators=(",", ":")
-        )
-        return value
 
     def load_state(self, state: dict[str, t.Any]) -> None:
         super().load_state(state)
@@ -85,7 +45,6 @@ class TapRiotAPI(Tap):
             self.state["match_detail_set"] = set(json.loads(raw_match_detail))
         else:
             self.state["match_detail_set"] = set()
-
 
     @classmethod
     def _parse_time_range_config(cls, start_config: str | None, end_config: str | None):
@@ -154,14 +113,6 @@ class TapRiotAPI(Tap):
             raise ConfigValidationError("No streams configured!")
 
         return [stream(tap=self) for stream in stream_types]
-
-    def write_message(self, message: Message) -> None:
-        sys.stdout.write("\n")
-        if message.type == "STATE":
-            sys.stdout.write("\n")
-            sys.stdout.write(f"{pformat(self.__class__.__mro__, width=120)}")
-            sys.stdout.write("\n")
-        sys.stdout.write("\n")
 
 
 if __name__ == "__main__":

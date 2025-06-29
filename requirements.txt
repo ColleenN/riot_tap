@@ -1,4 +1,4 @@
-singer-sdk~=0.43.1
+singer-sdk~=0.47.0
 meltano
 pytest
 requests~=2.32.3
