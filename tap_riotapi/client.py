@@ -10,6 +10,7 @@ from typing import TYPE_CHECKING
 from backoff import expo
 from singer_sdk.authenticators import APIKeyAuthenticator
 from singer_sdk.helpers._state import write_starting_replication_value
+from singer_sdk.helpers.jsonpath import extract_jsonpath
 from singer_sdk.streams import RESTStream
 from singer_sdk.streams.core import REPLICATION_INCREMENTAL
 
@@ -87,7 +88,11 @@ class RiotAPIStream(RESTStream):
         )
         url_params = parse_qs(urlparse(response.request.url).query)
 
-        data_iter = iter(super().parse_response(response))
+        data_iter = extract_jsonpath(
+            self.records_jsonpath,
+            input=response.json(),
+        )
+
         try:
             first_record = next(data_iter)
         except StopIteration:
