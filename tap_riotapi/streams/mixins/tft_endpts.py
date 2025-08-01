@@ -23,8 +23,9 @@ class TFTRankedLadderMixin:
         context: types.Context | None = None,  # noqa: ARG002
     ) -> dict | None:
         initial_row = super().post_process(row, context)
+        if not initial_row:
+            return context
         return context | {
-            "summonerId": initial_row["summonerId"],
             "puuid": initial_row["puuid"],
             "lp": initial_row["leaguePoints"],
             "matches_played": initial_row["wins"] + initial_row["losses"],
@@ -35,6 +36,10 @@ class TFTRankedLadderMixin:
         record: types.Record,
         context: types.Context | None,
     ) -> Iterable[types.Context | None]:
+        # This occurs when there are no players in this rank tier.
+        # Happens at the beginning of a new set, usually.
+        if not "puuid" in record:
+            return []
         if record["puuid"] in self.tap_state["player_match_history_state"]:
             my_history_state = self.tap_state["player_match_history_state"][
                 record["puuid"]

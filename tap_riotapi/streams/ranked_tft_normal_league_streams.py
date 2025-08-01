@@ -52,7 +52,6 @@ class NormalTierRankedLadderStream(TFTRankedLadderMixin, RiotAPIStream):
         th.Property(
             "puuid",
             th.StringType,
-            required=True,
         )
     ).to_dict()
 

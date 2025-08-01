@@ -1,8 +1,6 @@
 from __future__ import annotations
 
 from singer_sdk import typing as th  # JSON Schema typing helpers
-from singer_sdk.helpers import types
-from singer_sdk.helpers.types import Context
 
 from tap_riotapi.client import RiotAPIStream
 from tap_riotapi.utils import APEX_TIERS, REGION_ROUTING_MAP, flatten_config
