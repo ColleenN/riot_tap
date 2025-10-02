@@ -1,6 +1,6 @@
 import json
 from datetime import datetime
-from singer_sdk._singerlib import Message
+from singer_sdk.singerlib import Message
 from singer_sdk.io_base import SingerWriter
 import typing as t
 
