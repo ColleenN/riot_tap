@@ -16,13 +16,6 @@ class ApexTierRankedLadderStream(TFTRankedLadderMixin, RiotAPIStream):
     path = "/tft/league/v1/{tier}"
     schema = th.PropertiesList(
         th.Property(
-            "summonerId",
-            th.StringType,
-            required=True,
-            title="Summoner ID",
-            description="Unique identifier for league player account",
-        ),
-        th.Property(
             "puuid",
             th.StringType,
             required=True,
