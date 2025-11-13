@@ -77,7 +77,6 @@ class TFTMatchDetailMixin:
                 th.Property("endOfGameResult", th.StringType),
                 th.Property("gameCreation", th.NumberType),
                 th.Property("gameId", th.NumberType),
-                th.Property("gameCreation", th.NumberType),
                 th.Property("game_length", th.NumberType),
                 th.Property("game_version", th.StringType),
                 th.Property("mapId", th.NumberType),
