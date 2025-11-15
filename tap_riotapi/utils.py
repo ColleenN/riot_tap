@@ -29,6 +29,7 @@ NON_APEX_TIERS = {"diamond", "emerald", "platinum", "gold", "silver", "bronze", 
 APEX_TIERS = {"challenger", "grandmaster", "master"}
 
 REGION_ROUTING_MAP = {
+    "pbe": "americas",
     "na1": "americas",
     "br1": "americas",
     "la1": "americas",
