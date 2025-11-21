@@ -41,6 +41,10 @@ class TFTPlayerByNameStream(RiotAPIStream):
         player_list = []
         player_config, _, _ = flatten_config(self.config["following"])
         for player in player_config:
+            if "#" not in player["name"]:
+                print(f"MISSING TAGLINE - {player['name']}'")
+                continue
+
             name, tagline = player["name"].split("#")
 
             platform = player["region"].lower()
