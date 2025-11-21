@@ -1,15 +1,21 @@
 """Stream type classes for tap-riotapi."""
 
 from __future__ import annotations
+import typing
+import typing as t
 
 from singer_sdk import typing as th  # JSON Schema typing helpers
 from singer_sdk.helpers import types
+from singer_sdk.helpers.types import Context
 
 from tap_riotapi.client import RiotAPIStream
+from singer_sdk.exceptions import FatalAPIError
 from tap_riotapi.streams.mixins.tft_endpts import TFTMatchDetailMixin
 from tap_riotapi.streams.mixins.match_history import TFTMatchListMixin
 from tap_riotapi.utils import flatten_config, REGION_ROUTING_MAP
 
+if typing.TYPE_CHECKING:
+    import requests
 
 class TFTPlayerByNameStream(RiotAPIStream):
 
@@ -59,6 +65,17 @@ class TFTPlayerByNameStream(RiotAPIStream):
     ) -> types.Context | None:
         return record | context
 
+    def get_records(self, context: Context | None) -> t.Iterable[dict[str, t.Any]]:
+
+        try:
+            yield from super().request_records(context)
+        except FatalAPIError as api_error:
+            if "404 Client Error: Not Found for path" in str(api_error):
+                self.logger.warning(
+                    f"{api_error} - Skipping."
+                )
+                return
+            raise api_error
 
 class TFTPlayerMatchHistoryStream(TFTMatchListMixin, RiotAPIStream):
 
