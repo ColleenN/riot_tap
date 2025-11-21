@@ -49,7 +49,7 @@ class TapRiotAPI(Tap):
     @classmethod
     def _parse_time_range_config(cls, start_config: str | None, end_config: str | None):
 
-        if not start_config or datetime.fromisoformat(start_config) > datetime.now():
+        if not start_config or datetime.fromisoformat(start_config) > datetime.now(timezone.utc):
             init_datetime = datetime.now(timezone.utc).replace(
                 hour=0, minute=0, second=0, microsecond=0
             )
@@ -58,7 +58,7 @@ class TapRiotAPI(Tap):
             if not init_datetime.tzinfo:
                 init_datetime = init_datetime.replace(tzinfo=timezone.utc)
 
-        if not end_config or datetime.fromisoformat(end_config) > datetime.now():
+        if not end_config or datetime.fromisoformat(end_config) > datetime.now(timezone.utc):
             end_datetime = datetime.now(timezone.utc)
         else:
             end_datetime = datetime.fromisoformat(end_config)
