@@ -76,7 +76,7 @@ class TFTPlayerByNameStream(RiotAPIStream):
         except FatalAPIError as api_error:
             if "404 Client Error: Not Found for path" in str(api_error):
                 self.logger.warning(
-                    f"{api_error} - Skipping."
+                    f"{api_error} - SKIPPING."
                 )
                 return
             raise api_error
