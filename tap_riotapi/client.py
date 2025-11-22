@@ -27,8 +27,10 @@ def generate_wait(exception: Any) -> int | None:
     rsps = getattr(exception, "response", None)
 
     if rsps and rsps.status_code == 429 and "Retry-After" in rsps.headers:
-        return rsps.headers["Retry-After"]
-
+        try:
+            return int(rsps.headers["Retry-After"])+1
+        except ValueError:
+            return None
     return None
 
 
@@ -158,7 +160,7 @@ class RiotAPIStream(RESTStream):
         value: Callable[[Any], int],
     ) -> Generator[int, None, None]:
         exception = yield  # type: ignore[misc]
-        backup_gen = expo(factor=2)
+        backup_gen = expo(factor=2, base=4)
         backup_gen.send(None)
         while True:
             if result := value(exception):
