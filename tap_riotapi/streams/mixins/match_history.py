@@ -83,7 +83,8 @@ class TFTMatchListMixin(ResumablePaginationMixin):
         state_dict = self.get_context_state(context)
         if "last_used_query_params" in state_dict:
             last_used_end_param = datetime.fromtimestamp(
-                state_dict["last_used_query_params"]["endTime"]
+                state_dict["last_used_query_params"]["endTime"],
+                tz=timezone.utc
             )
             gap_period = self._tap.initial_timestamp - last_used_end_param
             if gap_period > timedelta(days=3):
