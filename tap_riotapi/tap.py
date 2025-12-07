@@ -112,6 +112,15 @@ class TapRiotAPI(Tap):
         if not stream_types:
             raise ConfigValidationError("No streams configured!")
 
+        stream_list = []
+        for stream_class in stream_types:
+            stream_obj = stream_class(tap=self)
+            if stream_class == streams.ApexTierRankedLadderStream:
+                stream_obj.ABORT_AT_RECORD_COUNT = self.config.get("apex_tier_max", None)
+            if stream_class == streams.NormalTierRankedLadderStream:
+                stream_obj.ABORT_AT_RECORD_COUNT = self.config.get("norm_tier_max", None)
+            stream_list.append(stream_obj)
+
         return [stream(tap=self) for stream in stream_types]
 
 
