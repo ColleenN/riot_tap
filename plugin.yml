@@ -23,5 +23,12 @@ settings:
 - name: end_date
   label: Latest match data to pull
   kind: date_iso8601
+- name: apex_tier_max
+  label: Maximum number of Master+ player records to pull
+  kind: integer
+- name: norm_tier_max
+  label: Maximum number of sub-Master player records to pull
+  kind: integer
+
 settings_group_validation:
 - [auth_token]

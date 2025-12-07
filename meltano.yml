@@ -1,37 +1,59 @@
-version: 1
+﻿default_environment: DEV
 send_anonymous_usage_stats: true
-project_id: "tap-riotapi"
+project_id: tap-riotapi
+environments:
+- name: DEV
+  config:
+    plugins:
+      extractors:
+      - name: tap-riotapi
+        config:
+          following:
+            na1:
+              leagues:
+                - name: challenger
+      loaders:
+        - name: target-bigquery
 plugins:
   extractors:
-  - name: "tap-riotapi"
-    namespace: "tap_riotapi"
+  - name: tap-riotapi
+    namespace: tap_riotapi
     pip_url: git+https://github.com/ColleenN/riot_tap
     capabilities:
     - state
-    - catalog
     - discover
     - about
     - stream-maps
 
-    settings:
-    - name: auth_token
-      label: Token
-      description: The token to use for authentication
-      kind: password
-    - name: following
-      label: Follow
-      description: Items we want to sync match data for
-      kind: object
-    - name: start_date
-      label: Earliest match data to pull
-      kind: date_iso8601
-    - name: end_date
-      label: Latest match data to pull
-      kind: date_iso8601
     settings_group_validation:
     - [auth_token]
 
+    settings:
+    - name: auth_token
+      kind: string
+      label: Token
+      description: The token to use for authentication
+      sensitive: true
+    - name: following
+      kind: object
+      label: Follow
+      description: Items we want to sync match data for
+    - name: start_date
+      kind: date_iso8601
+      label: Earliest match data to pull
+    - name: end_date
+      kind: date_iso8601
+      label: Latest match data to pull
+    - name: apex_tier_max
+      label: Maximum number of Master+ player records to pull
+      kind: integer
+    - name: norm_tier_max
+      label: Maximum number of sub-Master player records to pull
+      kind: integer
   loaders:
-  - name: target-jsonl
-    variant: andyh1203
-    pip_url: target-jsonl
+  - name: target-bigquery
+    variant: z3z1ma
+    pip_url: git+https://github.com/z3z1ma/target-bigquery.git
+    config:
+      project: tft-data-463022
+      dataset: match_data_landing_zone
