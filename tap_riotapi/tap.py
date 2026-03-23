@@ -26,6 +26,13 @@ class TapRiotAPI(Tap):
             self.config.get("start_date", None),
             self.config.get("end_date", None),
         )
+        self.prune_state()
+
+    def prune_state(self) -> None:
+        """Prune state to remove old entries."""
+        for item in self.state["player_match_history_state"].values():
+            if "last_processed" in item and item["last_processed"] < self.initial_timestamp:
+                del item["last_processed"]
 
     def load_state(self, state: dict[str, t.Any]) -> None:
         super().load_state(state)
