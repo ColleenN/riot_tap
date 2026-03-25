@@ -1,3 +1,4 @@
+import csv
 import json
 from datetime import datetime
 from singer_sdk.singerlib import Message
@@ -8,8 +9,8 @@ import typing as t
 def load_player_file(filepath: str | None) -> list[str]:
     if not filepath:
         return []
-    with open(filepath, "r") as f:
-        return json.load(f)
+    with open(filepath, newline="") as f:
+        return [f"{row[0]}#{row[1]}" for row in csv.reader(f)]
 
 
 def flatten_config(config_dict: dict[str, dict[str, list]]) -> tuple:

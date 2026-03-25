@@ -37,7 +37,10 @@ plugins:
     - name: following
       kind: object
       label: Follow
-      description: Items we want to sync match data for
+      description: >
+        Items we want to sync match data for. Each region key may include
+        'players' (inline list), 'player_list_file' (path to a 2-column
+        CSV file with player name and tagline columns), and 'leagues'.
     - name: start_date
       kind: date_iso8601
       label: Earliest match data to pull
