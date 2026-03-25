@@ -5,6 +5,13 @@ from singer_sdk.io_base import SingerWriter
 import typing as t
 
 
+def load_player_file(filepath: str | None) -> list[str]:
+    if not filepath:
+        return []
+    with open(filepath, "r") as f:
+        return json.load(f)
+
+
 def flatten_config(config_dict: dict[str, dict[str, list]]) -> tuple:
 
     players = []
@@ -12,8 +19,10 @@ def flatten_config(config_dict: dict[str, dict[str, list]]) -> tuple:
     reg_leagues = []
     for region, region_config_dict in config_dict.items():
         base = {"region": region}
+        inline_players = region_config_dict.get("players", [])
+        file_players = load_player_file(region_config_dict.get("player_list_file"))
         players.extend(
-            [base | {"name": p} for p in region_config_dict.get("players", [])]
+            [base | {"name": p} for p in inline_players + file_players]
         )
         for item in region_config_dict.get("leagues", []):
             if item["name"] in APEX_TIERS:
