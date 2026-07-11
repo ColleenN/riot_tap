@@ -11,6 +11,7 @@ from tap_riotapi import streams
 from tap_riotapi.client import RiotAPIStream
 from tap_riotapi.rate_limiting import RateLimitState
 from tap_riotapi.utils import *
+from tap_riotapi.validation import validate_player
 
 
 class TapRiotAPI(Tap):
@@ -91,6 +92,28 @@ class TapRiotAPI(Tap):
         th.Property("following", th.ObjectType(), required=True),
         th.Property("start_date", th.DateType, required=False),
     ).to_dict()
+
+    def sync_all(self) -> None:
+        token = self.config["auth_token"]
+        player_config, _, _ = flatten_config(self.config["following"])
+
+        for player in player_config:
+            platform = player["region"].lower()
+            if platform not in REGION_ROUTING_MAP:
+                continue
+            name_raw = player["name"]
+            if "#" in name_raw:
+                game_name, tag_line = name_raw.split("#", 1)
+            else:
+                game_name, tag_line = name_raw, platform
+            region = REGION_ROUTING_MAP[platform]
+            try:
+                if not validate_player(game_name, tag_line, platform, region, token):
+                    self.logger.warning("Player not found, skipping: %s (%s)", name_raw, platform)
+            except Exception as e:
+                self.logger.warning("Could not validate player %s (%s): %s", name_raw, platform, e)
+
+        super().sync_all()
 
     def discover_streams(self) -> list[RiotAPIStream]:
         """Return a list of discovered streams.
