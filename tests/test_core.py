@@ -1,8 +1,19 @@
-"""Tests standard tap features using the built-in SDK tests library."""
+"""Tests standard tap features using the built-in SDK tests library.
 
+These call the live Riot API, so they need a key in TAP_RIOTAPI_AUTH_TOKEN
+and are skipped without one.
+"""
+
+import os
+
+import pytest
 from singer_sdk.testing import get_tap_test_class
 
 from tap_riotapi.tap import TapRiotAPI
+
+AUTH_TOKEN = os.environ.get("TAP_RIOTAPI_AUTH_TOKEN")
+if not AUTH_TOKEN:
+    pytest.skip("live API tests: TAP_RIOTAPI_AUTH_TOKEN is not set", allow_module_level=True)
 
 PLAYER_CONFIG = {"players": ["SupremeKitteh#NA1"]}
 """
@@ -16,7 +27,7 @@ LEAGUE_CONFIG = {
 """
 LEAGUE_CONFIG = {"leagues": [{"name": "diamond"}]}
 SAMPLE_CONFIG = {
-    "auth_token": "RGAPI-2baded1e-080b-4b19-af3c-73c5ae752d45",
+    "auth_token": AUTH_TOKEN,
     "following": {"NA1": LEAGUE_CONFIG},
     "start_date": "2025-08-01",
     "end_date": "2025-08-01",
