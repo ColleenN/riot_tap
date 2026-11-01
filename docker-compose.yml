@@ -8,7 +8,7 @@ services:
       - ./meltano.yml:/project/project-config/meltano.yml
       - ./credentials.json:/project/melt-project/credentials.json
     environment:
-      - TAP_RIOTAPI_AUTH_TOKEN=RGAPI-5746da5a-8d61-4fb6-b8d7-f8ba84c738f0
+      - TAP_RIOTAPI_AUTH_TOKEN=${TAP_RIOTAPI_AUTH_TOKEN:?set TAP_RIOTAPI_AUTH_TOKEN, e.g. in .env}
       - TARGET_BIGQUERY_PROJECT=tft-data-463022
       - TARGET_BIGQUERY_DATASET=match_data_landing_zone
       - TARGET_BIGQUERY_CREDENTIALS_PATH=/project/melt-project/credentials.json
