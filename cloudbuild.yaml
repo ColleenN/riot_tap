@@ -1,0 +1,37 @@
+# Builds the extractor image and pushes it to the project's Docker registry.
+#
+# Run by a Cloud Build trigger on pushes to main (defined in tft_data_infra).
+# The tft-data-job Cloud Run job runs :latest, so a pushed image is used from
+# its next run.
+#
+# Note: the Dockerfile installs the tap from GitHub (plugin.yml's pip_url),
+# not from this checkout, so the image gets whatever main is at build time.
+# On a push to main that's the commit being built, unless another push lands
+# during the build.
+#
+# No test step: tests/test_core.py calls the live Riot API.
+
+substitutions:
+  _REGION: us-central1
+  _REGISTRY: tft-data-docker-registry
+  _IMAGE: tft-data-target-bigquery
+
+options:
+  logging: CLOUD_LOGGING_ONLY
+  substitutionOption: ALLOW_LOOSE
+
+steps:
+  - id: build
+    name: gcr.io/cloud-builders/docker
+    args:
+      - build
+      - -t
+      - ${_REGION}-docker.pkg.dev/${PROJECT_ID}/${_REGISTRY}/${_IMAGE}:${SHORT_SHA}
+      - -t
+      - ${_REGION}-docker.pkg.dev/${PROJECT_ID}/${_REGISTRY}/${_IMAGE}:latest
+      - .
+
+# Pushed only if the build succeeds.
+images:
+  - ${_REGION}-docker.pkg.dev/${PROJECT_ID}/${_REGISTRY}/${_IMAGE}:${SHORT_SHA}
+  - ${_REGION}-docker.pkg.dev/${PROJECT_ID}/${_REGISTRY}/${_IMAGE}:latest
