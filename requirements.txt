@@ -1,6 +1,7 @@
 singer-sdk~=0.47.0
 meltano
 pytest
+time-machine
 requests~=2.32.3
 python-dateutil
 backoff~=2.2.1
