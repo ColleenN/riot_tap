@@ -22,6 +22,6 @@ def validate_player(game_name: str, tag_line: str, platform: str, region: str, t
         response = _get(platform)
         if response.status_code == 200:
             return True
-        if response.status_code == 404:
-            return False
+    if response.status_code == 404:
+        return False
     response.raise_for_status()

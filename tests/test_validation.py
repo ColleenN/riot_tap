@@ -61,14 +61,6 @@ def test_other_errors_raise(fake_api):
         validate("1234")
 
 
-@pytest.mark.xfail(
-    strict=True,
-    raises=requests.HTTPError,
-    reason=(
-        "documented to return False on 404, but when the tag line already equals "
-        "the platform there's no retry and the 404 is raised instead"
-    ),
-)
 def test_missing_player_whose_tag_line_is_the_platform(fake_api):
     responses, _ = fake_api
     responses["NA1"] = 404
