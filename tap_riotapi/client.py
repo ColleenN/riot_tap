@@ -26,7 +26,8 @@ def generate_wait(exception: Any) -> int | None:
 
     rsps = getattr(exception, "response", None)
 
-    if rsps and rsps.status_code == 429 and "Retry-After" in rsps.headers:
+    # A requests.Response is falsy for error statuses, so compare to None.
+    if rsps is not None and rsps.status_code == 429 and "Retry-After" in rsps.headers:
         try:
             return int(rsps.headers["Retry-After"])+1
         except ValueError:
