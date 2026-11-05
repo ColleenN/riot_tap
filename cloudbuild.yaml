@@ -31,6 +31,9 @@ steps:
 
   - id: build
     name: gcr.io/cloud-builders/docker
+    # The Dockerfile's COPY --chmod needs BuildKit, which isn't on by default here.
+    env:
+      - DOCKER_BUILDKIT=1
     args:
       - build
       - -t
