@@ -1,0 +1,11 @@
+.git
+.github
+.meltano
+.secrets
+.env
+**/__pycache__
+**/*.pyc
+.pytest_cache
+*.egg-info
+build
+dist
