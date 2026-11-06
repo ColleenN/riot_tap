@@ -7,9 +7,7 @@ RUN meltano add --install target-bigquery
 
 COPY . /opt/riot_tap
 RUN meltano add extractor tap-riotapi --from-ref /opt/riot_tap/plugin.yml
-# Meltano installs the tap from plugin.yml's pip_url (GitHub main). Reinstall it
-# from this checkout in the same venv instead. The pip_url, and so Meltano's
-# install fingerprint, stays the same, so runs don't reinstall it from GitHub.
+# Replace the GitHub install with this checkout, keeping pip_url so Meltano won't reinstall at runtime.
 RUN python -m uv pip install --python .meltano/extractors/tap-riotapi/venv/bin/python \
     --no-deps --reinstall /opt/riot_tap
 
