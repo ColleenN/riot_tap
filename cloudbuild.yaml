@@ -4,11 +4,6 @@
 # The tft-data-job Cloud Run job runs :latest, so a pushed image is used from
 # its next run.
 #
-# Note: the Dockerfile installs the tap from GitHub (plugin.yml's pip_url),
-# not from this checkout, so the image gets whatever main is at build time.
-# On a push to main that's the commit being built, unless another push lands
-# during the build.
-#
 # The build has no Riot API key, so tests/test_core.py's live API tests skip
 # themselves and only the offline tests run.
 
