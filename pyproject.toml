@@ -7,6 +7,7 @@ name = "tap-riotapi"
 version = "0.0.1"
 dependencies = [
     "singer-sdk",
+    "jsonpath-ng~=1.16.0",
     "requests",
     "python-dateutil",
     "meltano",
