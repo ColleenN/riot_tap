@@ -59,6 +59,8 @@ class TFTRankedLadderMixin:
 class TFTMatchDetailMixin:
 
     path = "/tft/match/v1/matches/{matchId}"
+    # The response is one object; the SDK default "$[*]" yields its values on jsonpath-ng >= 1.11.
+    records_jsonpath = "$"
     schema = th.PropertiesList(
         th.Property(
             "metadata",

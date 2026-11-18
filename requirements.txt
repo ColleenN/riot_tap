@@ -1,4 +1,5 @@
 singer-sdk~=0.47.0
+jsonpath-ng~=1.16.0
 meltano
 pytest
 time-machine

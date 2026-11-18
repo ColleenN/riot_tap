@@ -24,6 +24,8 @@ class TFTPlayerByNameStream(RiotAPIStream):
 
     name = "tft_player_by_name"
     path = "/riot/account/v1/accounts/by-riot-id/{gameName}/{tagLine}"
+    # The response is one object; the SDK default "$[*]" yields its values on jsonpath-ng >= 1.11.
+    records_jsonpath = "$"
     schema = th.PropertiesList(
         th.Property(
             "puuid",
