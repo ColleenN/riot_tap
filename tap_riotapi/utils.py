@@ -1,6 +1,9 @@
 import csv
+import gzip
 import json
 from datetime import datetime
+from pathlib import Path
+from singer_sdk.helpers.jsonpath import extract_jsonpath
 from singer_sdk.singerlib import Message
 from singer_sdk.io_base import SingerWriter
 import typing as t
@@ -13,6 +16,33 @@ def load_player_file(filepath: str | None) -> list[str]:
         return [f"{row[0]}#{row[1]}" for row in csv.reader(f)]
 
 
+def load_player_json(source: dict | None) -> list[str]:
+    """Riot IDs picked out of a JSON document by JSONPath.
+
+    source["path"] is a JSON file, or a folder whose file with the last name
+    in sort order is read. Files ending in .gz are gunzipped. Each expression
+    in source["select"] must match string values.
+    """
+    if not source:
+        return []
+    path = Path(source["path"])
+    if path.is_dir():
+        files = sorted(p for p in path.iterdir() if p.is_file())
+        if not files:
+            raise FileNotFoundError(f"No player list files in {path}")
+        path = files[-1]
+    content = path.read_bytes()
+    if path.suffix == ".gz":
+        content = gzip.decompress(content)
+    document = json.loads(content)
+    return [
+        value.strip()
+        for expression in source["select"]
+        for value in extract_jsonpath(expression, document)
+        if isinstance(value, str) and value.strip()
+    ]
+
+
 def flatten_config(config_dict: dict[str, dict[str, list]]) -> tuple:
 
     players = []
@@ -22,9 +52,12 @@ def flatten_config(config_dict: dict[str, dict[str, list]]) -> tuple:
         base = {"region": region}
         inline_players = region_config_dict.get("players", [])
         file_players = load_player_file(region_config_dict.get("player_list_file"))
-        players.extend(
-            [base | {"name": p} for p in inline_players + file_players]
-        )
+        json_players = load_player_json(region_config_dict.get("player_list_json"))
+        seen = set()
+        for p in inline_players + file_players + json_players:
+            if p.lower() not in seen:
+                seen.add(p.lower())
+                players.append(base | {"name": p})
         for item in region_config_dict.get("leagues", []):
             if item["name"] in APEX_TIERS:
                 apex_leagues.append(item | base)

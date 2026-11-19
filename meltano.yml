@@ -40,7 +40,11 @@ plugins:
       description: >
         Items we want to sync match data for. Each region key may include
         'players' (inline list), 'player_list_file' (path to a 2-column
-        CSV file with player name and tagline columns), and 'leagues'.
+        CSV file with player name and tagline columns), 'player_list_json'
+        ({path, select}: a JSON file, or a folder whose last file by name is
+        read, gunzipped if it ends in .gz, and a list of JSONPath expressions
+        selecting Riot IDs), and 'leagues'. Players listed more than once in a
+        region are followed once.
     - name: start_date
       kind: date_iso8601
       label: Earliest match data to pull
