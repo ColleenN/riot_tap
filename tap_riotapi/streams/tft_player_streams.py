@@ -1,7 +1,6 @@
 """Stream type classes for tap-riotapi."""
 
 from __future__ import annotations
-import logging
 import typing
 import typing as t
 
@@ -15,7 +14,6 @@ from tap_riotapi.streams.mixins.tft_endpts import TFTMatchDetailMixin
 from tap_riotapi.streams.mixins.match_history import TFTMatchListMixin
 from tap_riotapi.utils import flatten_config, REGION_ROUTING_MAP
 
-LOGGER = logging.getLogger(__name__)
 
 if typing.TYPE_CHECKING:
     import requests
@@ -46,12 +44,6 @@ class TFTPlayerByNameStream(RiotAPIStream):
         player_list = []
         player_config, _, _ = flatten_config(self.config["following"])
         for player in player_config:
-            if "#" not in player["name"]:
-                LOGGER.info(f"MISSING TAGLINE - {player['name']}'")
-                continue
-
-            name, tagline = player["name"].split("#")
-
             platform = player["region"].lower()
             if platform not in REGION_ROUTING_MAP.keys():
                 continue
@@ -59,8 +51,8 @@ class TFTPlayerByNameStream(RiotAPIStream):
 
             player_list.append(
                 {
-                    "gameName": name,
-                    "tagLine": tagline,
+                    "gameName": player["game_name"],
+                    "tagLine": player["tag_line"],
                     "platform_routing_value": platform,
                     "region_routing_value": region,
                 }
