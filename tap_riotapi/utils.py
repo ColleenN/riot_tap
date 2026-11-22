@@ -1,12 +1,15 @@
 import csv
 import gzip
 import json
+import logging
 from datetime import datetime
 from pathlib import Path
 from singer_sdk.helpers.jsonpath import extract_jsonpath
 from singer_sdk.singerlib import Message
 from singer_sdk.io_base import SingerWriter
 import typing as t
+
+_logger = logging.getLogger(__name__)
 
 
 def load_player_file(filepath: str | None) -> list[str]:
@@ -43,6 +46,15 @@ def load_player_json(source: dict | None) -> list[str]:
     ]
 
 
+def sanitize_riot_id(raw: str) -> tuple[str, str] | None:
+    """Split a Riot ID into (game name, tagline), or None if either part is blank."""
+    game_name, _, tag_line = raw.partition("#")
+    game_name, tag_line = game_name.strip(), tag_line.strip()
+    if not game_name or not tag_line:
+        return None
+    return game_name, tag_line
+
+
 def flatten_config(config_dict: dict[str, dict[str, list]]) -> tuple:
 
     players = []
@@ -54,10 +66,18 @@ def flatten_config(config_dict: dict[str, dict[str, list]]) -> tuple:
         file_players = load_player_file(region_config_dict.get("player_list_file"))
         json_players = load_player_json(region_config_dict.get("player_list_json"))
         seen = set()
-        for p in inline_players + file_players + json_players:
-            if p.lower() not in seen:
-                seen.add(p.lower())
-                players.append(base | {"name": p})
+        for raw in inline_players + file_players + json_players:
+            riot_id = sanitize_riot_id(raw)
+            if riot_id is None:
+                _logger.warning("Skipping malformed Riot ID %r (%s)", raw, region)
+                continue
+            game_name, tag_line = riot_id
+            name = f"{game_name}#{tag_line}"
+            if name.lower() not in seen:
+                seen.add(name.lower())
+                players.append(
+                    base | {"name": name, "game_name": game_name, "tag_line": tag_line}
+                )
         for item in region_config_dict.get("leagues", []):
             if item["name"] in APEX_TIERS:
                 apex_leagues.append(item | base)

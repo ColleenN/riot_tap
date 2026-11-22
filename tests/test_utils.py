@@ -6,7 +6,13 @@ from datetime import datetime
 
 import pytest
 
-from tap_riotapi.utils import default_encoding, flatten_config, load_player_file, load_player_json
+from tap_riotapi.utils import (
+    default_encoding,
+    flatten_config,
+    load_player_file,
+    load_player_json,
+    sanitize_riot_id,
+)
 
 PLAYERLIST = {
     "players": [
@@ -40,8 +46,8 @@ def test_flatten_config_players_from_inline_and_file(tmp_path):
     )
 
     assert players == [
-        {"region": "na1", "name": "Inline#NA1"},
-        {"region": "na1", "name": "FromFile#NA1"},
+        {"region": "na1", "name": "Inline#NA1", "game_name": "Inline", "tag_line": "NA1"},
+        {"region": "na1", "name": "FromFile#NA1", "game_name": "FromFile", "tag_line": "NA1"},
     ]
     assert apex == [] and regular == []
 
@@ -84,9 +90,31 @@ def test_flatten_config_dedupes_players_across_sources(tmp_path):
     )
 
     assert players == [
-        {"region": "na1", "name": "ready#pbe"},
-        {"region": "na1", "name": "Padded #pbe"},
+        {"region": "na1", "name": "ready#pbe", "game_name": "ready", "tag_line": "pbe"},
+        {"region": "na1", "name": "Padded#pbe", "game_name": "Padded", "tag_line": "pbe"},
     ]
+
+
+@pytest.mark.parametrize(
+    "raw, expected",
+    [
+        ("Name#Tag", ("Name", "Tag")),
+        ("  Two Words  #  PBE ", ("Two Words", "PBE")),
+        ("Name#Tag#Extra", ("Name", "Tag#Extra")),
+        ("june rain #", None),
+        ("#PBE", None),
+        ("NoTagline", None),
+        ("   ", None),
+    ],
+)
+def test_sanitize_riot_id(raw, expected):
+    assert sanitize_riot_id(raw) == expected
+
+
+def test_flatten_config_skips_malformed_and_dedupes_cleaned_ids():
+    players, _, _ = flatten_config({"pbe": {"players": ["june rain #", "Foo #PBE", "Foo#PBE", "NoTag"]}})
+
+    assert players == [{"region": "pbe", "name": "Foo#PBE", "game_name": "Foo", "tag_line": "PBE"}]
 
 
 def test_flatten_config_splits_apex_and_regular_leagues():
